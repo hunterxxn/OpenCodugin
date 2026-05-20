@@ -15,7 +15,6 @@
         <toolWindow
             factoryClass="com.github.hunterxxn.opencodugin.terminal.OpenCodeToolWindowFactory"
             id="OpenCode"
-            anchor="bottom"
-            icon="AllIcons.Toolwindows.ToolWindowTerminal"/>
+            anchor="bottom"/>
     </extensions>
 </idea-plugin>
