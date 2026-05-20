@@ -4,8 +4,7 @@
     <name>OpenCodugin</name>
     <vendor>hunterxxn</vendor>
     <description><![CDATA[
-        <p><b>OpenCodugin</b> is a repository that provides a pure template to make it easier to create a new plugin project.</p>
-        <p>The main goal of this template is to speed up the setup phase of plugin development for both new and experienced developers by preconfiguring the project scaffold and CI, linking to the proper documentation pages, and keeping everything organized.</p>
+        <p><b>OpenCodugin</b> integrates opencode CLI into IntelliJ IDEA with full terminal mouse support and IDE-aware context sharing.</p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
@@ -13,7 +12,10 @@
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.hunterxxn.opencodugin.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
-        <postStartupActivity implementation="com.github.hunterxxn.opencodugin.startup.MyProjectActivity" />
+        <toolWindow
+            factoryClass="com.github.hunterxxn.opencodugin.terminal.OpenCodeToolWindowFactory"
+            id="OpenCode"
+            anchor="bottom"
+            icon="AllIcons.Toolwindows.ToolWindowTerminal"/>
     </extensions>
 </idea-plugin>
