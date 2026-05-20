@@ -97,26 +97,17 @@ private class PtyTtyConnector(
 
     override fun read(buf: CharArray, offset: Int, length: Int): Int {
         return try {
-            val bytes = ByteArray(length)
             val inputStream = process.inputStream
-            if (inputStream.available() > 0) {
-                val read = inputStream.read(bytes, 0, length.coerceAtMost(inputStream.available()))
-                if (read > 0) {
-                    val str = String(bytes, 0, read, charset)
-                    str.toCharArray(buf, offset, 0, str.length)
-                    str.length
-                } else {
-                    -1
-                }
-            } else {
-                val read = inputStream.read()
-                if (read >= 0) {
-                    buf[offset] = read.toChar()
-                    1
-                } else {
-                    -1
-                }
+            val byteBuf = ByteArray(length)
+            val len = inputStream.read(byteBuf, 0, length)
+            if (len <= 0) return len
+
+            val str = String(byteBuf, 0, len, charset)
+            val n = minOf(str.length, buf.size - offset)
+            for (i in 0 until n) {
+                buf[offset + i] = str[i]
             }
+            n
         } catch (e: IOException) {
             -1
         }
