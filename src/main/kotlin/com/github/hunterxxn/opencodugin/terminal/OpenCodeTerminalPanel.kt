@@ -5,7 +5,11 @@ import com.intellij.openapi.project.Project
 import com.jediterm.terminal.TtyConnector
 import com.jediterm.terminal.ui.JediTermWidget
 import com.pty4j.PtyProcess
+import java.awt.AWTEvent
 import java.awt.BorderLayout
+import java.awt.Toolkit
+import java.awt.event.AWTEventListener
+import java.awt.event.MouseWheelEvent
 import java.io.IOException
 import java.nio.charset.Charset
 import javax.swing.JPanel
@@ -36,6 +40,21 @@ class OpenCodeTerminalPanel(
 
             terminalWidget.createTerminalSession(ttyConnector)
             terminalWidget.start()
+
+            Toolkit.getDefaultToolkit().addAWTEventListener(
+                AWTEventListener { event ->
+                    if (event is MouseWheelEvent && terminalWidget.isAncestorOf(event.component)) {
+                        val button = if (event.wheelRotation < 0) 64 else 65
+                        val seq = "\u001b[?1006h\u001b[<$button;3;3M"
+                        try {
+                            process.outputStream.write(seq.toByteArray(Charset.defaultCharset()))
+                            process.outputStream.flush()
+                        } catch (_: Exception) {
+                        }
+                    }
+                },
+                AWTEvent.MOUSE_WHEEL_EVENT_MASK
+            )
 
             session = OpenCodeSession(
                 workingDirectory = workingDirectory,
@@ -83,7 +102,8 @@ private class PtyTtyConnector(
 ) : TtyConnector {
     private val charset = Charset.defaultCharset()
     private var lastWasPress = false
-    private val sgrReleasePattern = Regex("\u001b\\[<3;\\d+;\\d+M")
+    private val sgrRelease = Regex("\u001b\\[<3;\\d+;\\d+M")
+    private val sgrPress = Regex("\u001b\\[<[02];\\d+;\\d+M")
 
     override fun close() {
         if (process.isAlive) {
@@ -119,12 +139,10 @@ private class PtyTtyConnector(
         try {
             val str = String(bytes, 0, bytes.size, charset)
 
-            if (sgrReleasePattern.matches(str)) {
-                if (!lastWasPress) {
-                    return
-                }
+            if (sgrRelease.matches(str)) {
+                if (!lastWasPress) return
                 lastWasPress = false
-            } else if (Regex("\u001b\\[<[02];\\d+;\\d+M").matches(str)) {
+            } else if (sgrPress.matches(str)) {
                 lastWasPress = true
             }
 
