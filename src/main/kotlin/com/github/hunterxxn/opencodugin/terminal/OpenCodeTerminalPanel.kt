@@ -6,6 +6,8 @@ import com.jediterm.terminal.TtyConnector
 import com.jediterm.terminal.ui.JediTermWidget
 import com.pty4j.PtyProcess
 import java.awt.BorderLayout
+import java.awt.event.MouseEvent
+import java.awt.event.MouseMotionAdapter
 import java.awt.event.MouseWheelEvent
 import java.awt.event.MouseWheelListener
 import java.io.IOException
@@ -48,6 +50,12 @@ class OpenCodeTerminalPanel(
                         process.outputStream.flush()
                     } catch (_: Exception) {
                     }
+                    e.consume()
+                }
+            })
+
+            terminalWidget.addMouseMotionListener(object : MouseMotionAdapter() {
+                override fun mouseMoved(e: MouseEvent) {
                     e.consume()
                 }
             })
@@ -97,6 +105,8 @@ private class PtyTtyConnector(
     private val process: PtyProcess
 ) : TtyConnector {
     private val charset = Charset.defaultCharset()
+    private var lastWasPress = false
+    private val sgrReleasePattern = Regex("\u001b\\[<3;\\d+;\\d+M")
 
     override fun close() {
         if (process.isAlive) {
@@ -131,9 +141,16 @@ private class PtyTtyConnector(
     override fun write(bytes: ByteArray) {
         try {
             val str = String(bytes, 0, bytes.size, charset)
-            if (str.contains("\u001b[M") || str.contains("\u001b[<") || str.contains("\u001b[I") || str.contains("\u001b[O")) {
-                thisLogger().info("MOUSE event sent to opencode: ${str.replace("\u001b", "ESC")}")
+
+            if (sgrReleasePattern.matches(str)) {
+                if (!lastWasPress) {
+                    return
+                }
+                lastWasPress = false
+            } else if (Regex("\u001b\\[<[02];\\d+;\\d+M").matches(str)) {
+                lastWasPress = true
             }
+
             process.outputStream.write(bytes)
             process.outputStream.flush()
         } catch (_: Exception) {
