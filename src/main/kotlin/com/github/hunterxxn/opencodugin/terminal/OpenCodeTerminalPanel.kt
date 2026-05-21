@@ -6,8 +6,6 @@ import com.jediterm.terminal.TtyConnector
 import com.jediterm.terminal.ui.JediTermWidget
 import com.pty4j.PtyProcess
 import java.awt.BorderLayout
-import java.awt.event.MouseEvent
-import java.awt.event.MouseMotionAdapter
 import java.awt.event.MouseWheelEvent
 import java.awt.event.MouseWheelListener
 import java.io.IOException
@@ -45,17 +43,13 @@ class OpenCodeTerminalPanel(
                 override fun mouseWheelMoved(e: MouseWheelEvent) {
                     val button = if (e.wheelRotation < 0) 64 else 65
                     val seq = "\u001b[<$button;1;1M"
+                    thisLogger().info("WHEEL intercept: rotation=${e.wheelRotation}, sending: ${seq.replace("\u001b", "ESC")}")
                     try {
                         process.outputStream.write(seq.toByteArray(Charset.defaultCharset()))
                         process.outputStream.flush()
-                    } catch (_: Exception) {
+                    } catch (ex: Exception) {
+                        thisLogger().warn("WHEEL write failed", ex)
                     }
-                    e.consume()
-                }
-            })
-
-            terminalWidget.addMouseMotionListener(object : MouseMotionAdapter() {
-                override fun mouseMoved(e: MouseEvent) {
                     e.consume()
                 }
             })
