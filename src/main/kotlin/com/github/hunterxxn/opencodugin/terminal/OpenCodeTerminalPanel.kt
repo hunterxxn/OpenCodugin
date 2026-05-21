@@ -39,20 +39,28 @@ class OpenCodeTerminalPanel(
             terminalWidget.createTerminalSession(ttyConnector)
             terminalWidget.start()
 
-            terminalWidget.addMouseWheelListener(object : MouseWheelListener {
-                override fun mouseWheelMoved(e: MouseWheelEvent) {
-                    val button = if (e.wheelRotation < 0) 64 else 65
-                    val seq = "\u001b[<$button;1;1M"
-                    thisLogger().info("WHEEL intercept: rotation=${e.wheelRotation}, sending: ${seq.replace("\u001b", "ESC")}")
-                    try {
-                        process.outputStream.write(seq.toByteArray(Charset.defaultCharset()))
-                        process.outputStream.flush()
-                    } catch (ex: Exception) {
-                        thisLogger().warn("WHEEL write failed", ex)
+            val terminalPanel = terminalWidget.components
+                .firstOrNull { it.javaClass.name.contains("TerminalPanel") }
+
+            if (terminalPanel != null) {
+                terminalPanel.addMouseWheelListener(object : MouseWheelListener {
+                    override fun mouseWheelMoved(e: MouseWheelEvent) {
+                        val button = if (e.wheelRotation < 0) 64 else 65
+                        val seq = "\u001b[<$button;1;1M"
+                        thisLogger().info("WHEEL intercept: rotation=${e.wheelRotation}, sending: ${seq.replace("\u001b", "ESC")}")
+                        try {
+                            process.outputStream.write(seq.toByteArray(Charset.defaultCharset()))
+                            process.outputStream.flush()
+                        } catch (ex: Exception) {
+                            thisLogger().warn("WHEEL write failed", ex)
+                        }
+                        e.consume()
                     }
-                    e.consume()
-                }
-            })
+                })
+                thisLogger().info("WHEEL listener attached to TerminalPanel")
+            } else {
+                thisLogger().warn("Could not find TerminalPanel to attach wheel listener")
+            }
 
             session = OpenCodeSession(
                 workingDirectory = workingDirectory,
