@@ -23,7 +23,7 @@ class OpenCodeTerminalSettings : DefaultSettingsProvider() {
 
         val allFonts = GraphicsEnvironment.getLocalGraphicsEnvironment().availableFontFamilyNames
         val candidates = listOf(
-            "Sarasa Fixed SC", "Sarasa Term SC", "Sarasa Mono SC",
+            "Maple Mono Normal NF CN", "Sarasa Fixed SC",
             "SimSun", "新宋体", "NSimSun",
             "Cascadia Code", "JetBrains Mono"
         )
@@ -36,13 +36,13 @@ class OpenCodeTerminalSettings : DefaultSettingsProvider() {
 
     private fun loadEmbeddedFont(size: Int): Font? {
         return try {
-            val stream = javaClass.classLoader.getResourceAsStream("fonts/SarasaFixedSC-Regular.ttf")
+            val stream = javaClass.classLoader.getResourceAsStream("fonts/MapleMonoNormal-NF-CN-Regular.ttf")
                 ?: return null
             stream.use { s ->
                 val font = Font.createFont(Font.TRUETYPE_FONT, s).deriveFont(Font.PLAIN, size.toFloat())
                 val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
                 ge.registerFont(font)
-                thisLogger().info("Loaded embedded font: SarasaFixedSC-Regular.ttf")
+                thisLogger().info("Loaded embedded font: MapleMonoNormal-NF-CN")
                 font
             }
         } catch (e: Exception) {
