@@ -5,11 +5,7 @@ import com.intellij.openapi.project.Project
 import com.jediterm.terminal.TtyConnector
 import com.jediterm.terminal.ui.JediTermWidget
 import com.pty4j.PtyProcess
-import java.awt.AWTEvent
 import java.awt.BorderLayout
-import java.awt.Toolkit
-import java.awt.event.AWTEventListener
-import java.awt.event.MouseWheelEvent
 import java.io.IOException
 import java.nio.charset.Charset
 import javax.swing.JPanel
@@ -40,27 +36,6 @@ class OpenCodeTerminalPanel(
 
             terminalWidget.createTerminalSession(ttyConnector)
             terminalWidget.start()
-
-            val wheelInterceptor = AWTEventListener { event ->
-                if (event is MouseWheelEvent && terminalWidget.isAncestorOf(event.component as java.awt.Component)) {
-                    val rotation = event.wheelRotation
-                    val sgrButton = if (rotation < 0) 64 else 65
-                    val sgrPress = "\u001b[<$sgrButton;3;3M"
-                    thisLogger().info("WHEEL intercept: rotation=$rotation, sending SGR: ${sgrPress.replace("\u001b", "ESC")}")
-                    try {
-                        val out = process.outputStream
-                        out.write("\u001b[?1006h".toByteArray(Charset.defaultCharset()))
-                        out.write(sgrPress.toByteArray(Charset.defaultCharset()))
-                        out.flush()
-                    } catch (ex: Exception) {
-                        thisLogger().warn("WHEEL write failed", ex)
-                    }
-                }
-            }
-            Toolkit.getDefaultToolkit().addAWTEventListener(
-                wheelInterceptor,
-                AWTEvent.MOUSE_WHEEL_EVENT_MASK
-            )
 
             session = OpenCodeSession(
                 workingDirectory = workingDirectory,
