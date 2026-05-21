@@ -43,16 +43,18 @@ class OpenCodeTerminalPanel(
 
             val wheelInterceptor = AWTEventListener { event ->
                 if (event is MouseWheelEvent && terminalWidget.isAncestorOf(event.component as java.awt.Component)) {
-                    val button = if (event.wheelRotation < 0) 64 else 65
-                    val seq = "\u001b[<$button;1;1M"
-                    thisLogger().info("WHEEL intercept: rotation=${event.wheelRotation}, sending: ${seq.replace("\u001b", "ESC")}")
+                    val rotation = event.wheelRotation
+                    val sgrButton = if (rotation < 0) 64 else 65
+                    val sgrPress = "\u001b[<$sgrButton;3;3M"
+                    thisLogger().info("WHEEL intercept: rotation=$rotation, sending SGR: ${sgrPress.replace("\u001b", "ESC")}")
                     try {
-                        process.outputStream.write(seq.toByteArray(Charset.defaultCharset()))
-                        process.outputStream.flush()
+                        val out = process.outputStream
+                        out.write("\u001b[?1006h".toByteArray(Charset.defaultCharset()))
+                        out.write(sgrPress.toByteArray(Charset.defaultCharset()))
+                        out.flush()
                     } catch (ex: Exception) {
                         thisLogger().warn("WHEEL write failed", ex)
                     }
-                    event.consume()
                 }
             }
             Toolkit.getDefaultToolkit().addAWTEventListener(
