@@ -100,10 +100,15 @@ class OpenCodeTerminalPanel(
 private class PtyTtyConnector(
     private val process: PtyProcess
 ) : TtyConnector {
-    private val charset = Charset.defaultCharset()
+    private val charset = Charset.forName("UTF-8")
     private var lastWasPress = false
     private val sgrRelease = Regex("\u001b\\[<3;\\d+;\\d+M")
     private val sgrPress = Regex("\u001b\\[<[02];\\d+;\\d+M")
+
+    init {
+        com.intellij.openapi.diagnostic.Logger.getInstance("OpenCode.PtyTty")
+            .info("TtyConnector charset: $charset, default was: ${Charset.defaultCharset()}")
+    }
 
     override fun close() {
         if (process.isAlive) {
