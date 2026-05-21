@@ -16,24 +16,39 @@ class OpenCodeTerminalSettings : DefaultSettingsProvider() {
     override fun pasteOnMiddleMouseClick(): Boolean = false
 
     override fun getTerminalFont(): Font {
+        val size = getTerminalFontSize().toInt()
+
+        val embedded = loadEmbeddedFont(size)
+        if (embedded != null) return embedded
+
         val allFonts = GraphicsEnvironment.getLocalGraphicsEnvironment().availableFontFamilyNames
         val candidates = listOf(
-            "Sarasa Term SC", "Sarasa Mono SC", "Sarasa Term J",
-            "Cascadia Code", "Cascadia Mono",
-            "JetBrains Mono", "JetBrainsMono Nerd Font",
-            "Fira Code", "FiraCode Nerd Font",
-            "Source Code Pro", "Hack",
-            "Microsoft YaHei Mono",
-            "DengXian",
-            "NSimSun"
+            "Sarasa Fixed SC", "Sarasa Term SC", "Sarasa Mono SC",
+            "SimSun", "新宋体", "NSimSun",
+            "Cascadia Code", "JetBrains Mono"
         )
-
         val name = candidates.firstOrNull { it in allFonts } ?: "Monospaced"
-        val size = getTerminalFontSize().toInt()
         thisLogger().info("Selected terminal font: $name, size: $size")
         return Font(name, Font.PLAIN, size)
     }
 
     override fun getTerminalFontSize(): Float = 14f
+
+    private fun loadEmbeddedFont(size: Int): Font? {
+        return try {
+            val stream = javaClass.classLoader.getResourceAsStream("fonts/SarasaFixedSC-Regular.ttf")
+                ?: return null
+            stream.use { s ->
+                val font = Font.createFont(Font.TRUETYPE_FONT, s).deriveFont(Font.PLAIN, size.toFloat())
+                val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
+                ge.registerFont(font)
+                thisLogger().info("Loaded embedded font: SarasaFixedSC-Regular.ttf")
+                font
+            }
+        } catch (e: Exception) {
+            thisLogger().warn("Failed to load embedded font", e)
+            null
+        }
+    }
 }
 
