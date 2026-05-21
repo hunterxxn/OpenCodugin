@@ -11,7 +11,6 @@ import java.awt.Toolkit
 import java.awt.event.AWTEventListener
 import java.awt.event.MouseWheelEvent
 import java.io.IOException
-import java.nio.charset.Charset
 import javax.swing.JPanel
 
 class OpenCodeTerminalPanel(
@@ -47,7 +46,7 @@ class OpenCodeTerminalPanel(
                         val button = if (event.wheelRotation < 0) 64 else 65
                         val seq = "\u001b[?1006h\u001b[<$button;3;3M"
                         try {
-                            process.outputStream.write(seq.toByteArray(Charset.defaultCharset()))
+                            process.outputStream.write(seq.toByteArray(Charsets.UTF_8))
                             process.outputStream.flush()
                         } catch (_: Exception) {
                         }
@@ -82,7 +81,7 @@ class OpenCodeTerminalPanel(
     fun writeToTerminal(text: String) {
         try {
             session?.process?.outputStream?.use { out ->
-                out.write(text.toByteArray(Charset.defaultCharset()))
+                out.write(text.toByteArray(Charsets.UTF_8))
                 out.flush()
             }
         } catch (e: Exception) {
@@ -100,7 +99,7 @@ class OpenCodeTerminalPanel(
 private class PtyTtyConnector(
     private val process: PtyProcess
 ) : TtyConnector {
-    private val charset = Charset.defaultCharset()
+    private val charset = Charsets.UTF_8
     private var lastWasPress = false
     private val sgrRelease = Regex("\u001b\\[<3;\\d+;\\d+M")
     private val sgrPress = Regex("\u001b\\[<[02];\\d+;\\d+M")
