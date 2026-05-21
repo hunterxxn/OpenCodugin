@@ -6,12 +6,9 @@ import com.jediterm.terminal.TtyConnector
 import com.jediterm.terminal.ui.JediTermWidget
 import com.pty4j.PtyProcess
 import java.awt.BorderLayout
-import java.awt.event.MouseWheelEvent
-import java.awt.event.MouseWheelListener
 import java.io.IOException
 import java.nio.charset.Charset
 import javax.swing.JPanel
-import javax.swing.SwingUtilities
 
 class OpenCodeTerminalPanel(
     private val project: Project,
@@ -25,8 +22,6 @@ class OpenCodeTerminalPanel(
 
     init {
         component.add(terminalWidget, BorderLayout.CENTER)
-        hideTerminalScrollbar()
-        installMouseWheelForwarder()
     }
 
     fun startSession(): OpenCodeSession? {
@@ -81,52 +76,6 @@ class OpenCodeTerminalPanel(
     fun dispose() {
         stopSession()
     }
-
-    private fun hideTerminalScrollbar() {
-        SwingUtilities.invokeLater {
-            val scrollbar = findScrollbar(terminalWidget)
-            scrollbar?.apply {
-                isVisible = false
-                isEnabled = false
-                preferredSize = java.awt.Dimension(0, 0)
-                minimumSize = java.awt.Dimension(0, 0)
-                maximumSize = java.awt.Dimension(0, 0)
-            }
-        }
-    }
-
-    private fun installMouseWheelForwarder() {
-        terminalWidget.addMouseWheelListener(object : MouseWheelListener {
-            override fun mouseWheelMoved(e: MouseWheelEvent) {
-                val s = session ?: return
-                if (!s.isAlive) return
-                try {
-                    val metrics = terminalWidget.getFontMetrics(terminalWidget.font)
-                    val charW = metrics.charWidth('W')
-                    val charH = metrics.height
-                    val col = (e.x / charW).coerceAtLeast(0)
-                    val row = (e.y / charH).coerceAtLeast(0)
-                    val button = if (e.unitsToScroll < 0) 64 else 65
-                    val seq = "\u001b[<$button;${col + 1};${row + 1}M"
-                    s.process.outputStream.write(seq.toByteArray(Charset.defaultCharset()))
-                    s.process.outputStream.flush()
-                    e.consume()
-                } catch (_: Exception) {
-                }
-            }
-        })
-    }
-
-    private fun findScrollbar(container: java.awt.Container): java.awt.Component? {
-        for (component in container.components) {
-            val clsName = component.javaClass.name.lowercase()
-            if (clsName.contains("scrollbar") || clsName.contains("scroll")) return component
-            if (component is java.awt.Container) {
-                findScrollbar(component)?.let { return it }
-            }
-        }
-        return null
-    }
 }
 
 private class PtyTtyConnector(
@@ -166,6 +115,10 @@ private class PtyTtyConnector(
 
     override fun write(bytes: ByteArray) {
         try {
+            val str = String(bytes, 0, bytes.size, charset)
+            if (str.contains("\u001b[M") || str.contains("\u001b[<") || str.contains("\u001b[I") || str.contains("\u001b[O")) {
+                thisLogger().info("MOUSE event sent to opencode: ${str.replace("\u001b", "ESC")}")
+            }
             process.outputStream.write(bytes)
             process.outputStream.flush()
         } catch (_: Exception) {

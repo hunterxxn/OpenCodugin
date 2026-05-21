@@ -7,4 +7,8 @@ class OpenCodeTerminalSettings : DefaultSettingsProvider() {
     override fun enableMouseReporting(): Boolean = true
 
     override fun forceActionOnMouseReporting(): Boolean = false
+
+    override fun copyOnSelect(): Boolean = false
+
+    override fun pasteOnMiddleMouseClick(): Boolean = false
 }
