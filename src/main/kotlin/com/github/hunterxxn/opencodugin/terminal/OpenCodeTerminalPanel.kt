@@ -6,6 +6,8 @@ import com.jediterm.terminal.TtyConnector
 import com.jediterm.terminal.ui.JediTermWidget
 import com.pty4j.PtyProcess
 import java.awt.BorderLayout
+import java.awt.event.MouseWheelEvent
+import java.awt.event.MouseWheelListener
 import java.io.IOException
 import java.nio.charset.Charset
 import javax.swing.JPanel
@@ -36,6 +38,19 @@ class OpenCodeTerminalPanel(
 
             terminalWidget.createTerminalSession(ttyConnector)
             terminalWidget.start()
+
+            terminalWidget.addMouseWheelListener(object : MouseWheelListener {
+                override fun mouseWheelMoved(e: MouseWheelEvent) {
+                    val button = if (e.wheelRotation < 0) 64 else 65
+                    val seq = "\u001b[<$button;1;1M"
+                    try {
+                        process.outputStream.write(seq.toByteArray(Charset.defaultCharset()))
+                        process.outputStream.flush()
+                    } catch (_: Exception) {
+                    }
+                    e.consume()
+                }
+            })
 
             session = OpenCodeSession(
                 workingDirectory = workingDirectory,
