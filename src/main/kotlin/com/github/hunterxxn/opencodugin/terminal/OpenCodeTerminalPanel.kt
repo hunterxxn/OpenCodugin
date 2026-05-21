@@ -7,12 +7,15 @@ import com.jediterm.terminal.ui.JediTermWidget
 import com.pty4j.PtyProcess
 import java.awt.AWTEvent
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.Toolkit
 import java.awt.event.AWTEventListener
 import java.awt.event.MouseWheelEvent
 import java.io.IOException
 import java.nio.charset.Charset
 import javax.swing.JPanel
+import javax.swing.JScrollBar
+import javax.swing.JScrollPane
 
 class OpenCodeTerminalPanel(
     private val project: Project,
@@ -26,6 +29,7 @@ class OpenCodeTerminalPanel(
 
     init {
         component.add(terminalWidget, BorderLayout.CENTER)
+        hideScrollBars(terminalWidget)
     }
 
     fun startSession(): OpenCodeSession? {
@@ -94,6 +98,19 @@ class OpenCodeTerminalPanel(
 
     fun dispose() {
         stopSession()
+    }
+
+    companion object {
+        fun hideScrollBars(component: Component) {
+            when (component) {
+                is JScrollPane -> {
+                    component.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_NEVER
+                    component.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+                }
+                is JScrollBar -> component.isVisible = false
+                is java.awt.Container -> component.components.forEach { hideScrollBars(it) }
+            }
+        }
     }
 }
 
