@@ -1,6 +1,6 @@
 # OpenCodugin Changelog
 
-## [0.1.0] - 2026-05-21
+## [Unreleased]
 
 ### Added
 - PTY 终端集成 opencode CLI，支持鼠标滚轮和鼠标事件上报
