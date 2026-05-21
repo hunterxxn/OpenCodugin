@@ -5,9 +5,11 @@ import com.intellij.openapi.project.Project
 import com.jediterm.terminal.TtyConnector
 import com.jediterm.terminal.ui.JediTermWidget
 import com.pty4j.PtyProcess
+import java.awt.AWTEvent
 import java.awt.BorderLayout
+import java.awt.Toolkit
+import java.awt.event.AWTEventListener
 import java.awt.event.MouseWheelEvent
-import java.awt.event.MouseWheelListener
 import java.io.IOException
 import java.nio.charset.Charset
 import javax.swing.JPanel
@@ -39,28 +41,24 @@ class OpenCodeTerminalPanel(
             terminalWidget.createTerminalSession(ttyConnector)
             terminalWidget.start()
 
-            val terminalPanel = terminalWidget.components
-                .firstOrNull { it.javaClass.name.contains("TerminalPanel") }
-
-            if (terminalPanel != null) {
-                terminalPanel.addMouseWheelListener(object : MouseWheelListener {
-                    override fun mouseWheelMoved(e: MouseWheelEvent) {
-                        val button = if (e.wheelRotation < 0) 64 else 65
-                        val seq = "\u001b[<$button;1;1M"
-                        thisLogger().info("WHEEL intercept: rotation=${e.wheelRotation}, sending: ${seq.replace("\u001b", "ESC")}")
-                        try {
-                            process.outputStream.write(seq.toByteArray(Charset.defaultCharset()))
-                            process.outputStream.flush()
-                        } catch (ex: Exception) {
-                            thisLogger().warn("WHEEL write failed", ex)
-                        }
-                        e.consume()
+            val wheelInterceptor = AWTEventListener { event ->
+                if (event is MouseWheelEvent && terminalWidget.isAncestorOf(event.component as java.awt.Component)) {
+                    val button = if (event.wheelRotation < 0) 64 else 65
+                    val seq = "\u001b[<$button;1;1M"
+                    thisLogger().info("WHEEL intercept: rotation=${event.wheelRotation}, sending: ${seq.replace("\u001b", "ESC")}")
+                    try {
+                        process.outputStream.write(seq.toByteArray(Charset.defaultCharset()))
+                        process.outputStream.flush()
+                    } catch (ex: Exception) {
+                        thisLogger().warn("WHEEL write failed", ex)
                     }
-                })
-                thisLogger().info("WHEEL listener attached to TerminalPanel")
-            } else {
-                thisLogger().warn("Could not find TerminalPanel to attach wheel listener")
+                    event.consume()
+                }
             }
+            Toolkit.getDefaultToolkit().addAWTEventListener(
+                wheelInterceptor,
+                AWTEvent.MOUSE_WHEEL_EVENT_MASK
+            )
 
             session = OpenCodeSession(
                 workingDirectory = workingDirectory,
