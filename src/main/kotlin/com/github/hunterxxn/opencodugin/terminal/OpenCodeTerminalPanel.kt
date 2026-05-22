@@ -79,20 +79,6 @@ class OpenCodeTerminalPanel(
         session = null
     }
 
-    fun clearTerminal() {
-        writeToTerminal("\u001b[2J\u001b[H")
-    }
-
-    fun writeToTerminal(text: String) {
-        try {
-            session?.process?.outputStream?.use { out ->
-                out.write(text.toByteArray(Charset.defaultCharset()))
-                out.flush()
-            }
-        } catch (e: Exception) {
-            thisLogger().error("Failed to write to terminal process", e)
-        }
-    }
 
     fun getCurrentSession(): OpenCodeSession? = session
 

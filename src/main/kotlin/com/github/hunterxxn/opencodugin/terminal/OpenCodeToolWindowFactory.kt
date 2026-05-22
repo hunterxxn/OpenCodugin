@@ -80,14 +80,6 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
             }
         })
 
-        toolbar.add(JButton(MyBundle["opencode.session.clear"]).apply {
-            addActionListener {
-                val selectedInfo = tabs.selectedInfo ?: return@addActionListener
-                val panel = findPanelForTab(sessionManager, selectedInfo) ?: return@addActionListener
-                panel.clearTerminal()
-            }
-        })
-
         return toolbar
     }
 
