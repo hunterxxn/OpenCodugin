@@ -2,7 +2,6 @@ package com.github.hunterxxn.opencodugin.terminal
 
 import com.intellij.openapi.diagnostic.thisLogger
 import com.jediterm.terminal.TerminalColor
-import com.jediterm.terminal.TextStyle
 import com.jediterm.terminal.ui.settings.DefaultSettingsProvider
 import java.awt.Font
 import java.awt.GraphicsEnvironment
@@ -23,8 +22,6 @@ class OpenCodeTerminalSettings : DefaultSettingsProvider() {
     override fun getDefaultForeground(): TerminalColor =
         TerminalColor.rgb(204, 204, 204)
 
-    override fun getDefaultStyle(): TextStyle =
-        TextStyle(TerminalColor.rgb(204, 204, 204), TerminalColor.rgb(30, 30, 30))
 
     override fun getTerminalFont(): Font {
         val size = getTerminalFontSize().toInt()
