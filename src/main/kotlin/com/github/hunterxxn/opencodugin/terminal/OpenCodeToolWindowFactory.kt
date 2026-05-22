@@ -7,6 +7,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.tabs.TabInfo
+import com.intellij.ui.tabs.TabsListener
 import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.github.hunterxxn.opencodugin.MyBundle
 import javax.swing.JButton
@@ -40,7 +41,20 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
             }
             tabs.addTab(tabInfo)
             tabs.select(tabInfo, true)
+            sessionManager.setActiveSession(defaultSession.id)
         }
+
+        tabs.addListener(object : TabsListener {
+            override fun selectionChanged(oldSelection: TabInfo?, newSelection: TabInfo?) {
+                if (newSelection != null) {
+                    val panel = findPanelForTab(sessionManager, newSelection)
+                    val session = panel?.getCurrentSession()
+                    sessionManager.setActiveSession(session?.id)
+                } else {
+                    sessionManager.setActiveSession(null)
+                }
+            }
+        })
     }
 
     override fun shouldBeAvailable(project: Project): Boolean = true
@@ -64,6 +78,7 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
                     }
                     tabs.addTab(tabInfo)
                     tabs.select(tabInfo, true)
+                    sessionManager.setActiveSession(session.id)
                 }
             }
         })

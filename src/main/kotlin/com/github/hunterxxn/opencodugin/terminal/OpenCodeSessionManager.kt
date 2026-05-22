@@ -9,6 +9,18 @@ class OpenCodeSessionManager(private val project: Project) {
 
     private val panels = ConcurrentHashMap<String, OpenCodeTerminalPanel>()
 
+    var activeSessionId: String? = null
+        private set
+
+    fun setActiveSession(sessionId: String?) {
+        activeSessionId = sessionId
+    }
+
+    fun getActivePanel(): OpenCodeTerminalPanel? {
+        val id = activeSessionId ?: return null
+        return panels[id]
+    }
+
     fun createPanel(workingDirectory: String): OpenCodeTerminalPanel {
         val panel = OpenCodeTerminalPanel(project, workingDirectory)
         panel.startSession()
