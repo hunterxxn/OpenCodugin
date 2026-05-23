@@ -9,6 +9,7 @@ plugins {
 
 dependencies {
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.opentest4j:opentest4j:1.3.0")
 
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
@@ -20,5 +21,12 @@ dependencies {
 intellijPlatform {
     pluginVerification {
         failureLevel = listOf(VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS)
+    }
+}
+
+tasks {
+    patchPluginXml {
+        sinceBuild.set("242")
+        untilBuild.set("261.*")
     }
 }
