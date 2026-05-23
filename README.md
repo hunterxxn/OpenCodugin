@@ -10,6 +10,7 @@ Integrates [opencode](https://github.com/anomalyco/opencode) CLI into IntelliJ I
 - **Multiple sessions** — open separate opencode sessions in tabs
 - **Bottom tool window** — docked at the bottom of the IDE, always accessible
 - **IDE context sharing** — opencode is aware of the current project directory
+- **File reference injection** — right-click any file in Project View or Editor to insert ` @path#L1-L10 ` into the active session
 
 ## Usage
 
@@ -20,6 +21,20 @@ Open the **OpenCode** tool window at the bottom of the IDE. A session starts aut
 | New Session | Open a new opencode session in a new tab |
 | Stop | Terminate the current session |
 | Clear | Clear the terminal screen |
+
+### Add File to OpenCode
+
+Right-click a file in one of these locations and select **Add to OpenCode**:
+
+| Location | Behavior |
+|----------|----------|
+| Project View (file tree) | Inserts file path relative to project root |
+| Editor tab | Inserts file path relative to project root |
+| Editor content area | Inserts file path + line range if text is selected |
+
+The file reference is placed in the active terminal session as editable text — add more context, then press Enter to send. If no terminal session is active, the reference is copied to clipboard instead.
+
+Multi-select is supported: select several files, right-click, and all references are inserted at once, space-separated.
 
 ## Installation
 

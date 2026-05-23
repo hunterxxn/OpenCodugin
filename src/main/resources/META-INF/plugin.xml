@@ -16,5 +16,19 @@
             factoryClass="com.github.hunterxxn.opencodugin.terminal.OpenCodeToolWindowFactory"
             id="OpenCode"
             anchor="bottom"/>
+        <notificationGroup id="OpenCode Notifications"
+            displayType="BALLOON"/>
     </extensions>
+
+    <actions>
+        <action
+            id="OpenCode.AddFileReference"
+            class="com.github.hunterxxn.opencodugin.commands.OpenCodeFileReferenceAction"
+            text="Add to OpenCode"
+            description="Add file reference to OpenCode terminal">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <add-to-group group-id="EditorTabPopupMenu" anchor="last"/>
+        </action>
+    </actions>
 </idea-plugin>
