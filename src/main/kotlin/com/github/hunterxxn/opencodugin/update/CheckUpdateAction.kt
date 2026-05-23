@@ -19,64 +19,69 @@ class CheckUpdateAction : AnAction(
 ) {
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
-
-        ProgressManager.getInstance().run(object : Task.Backgroundable(project, MyBundle["opencode.update.checking"], false) {
-            private var result: UpdateResult? = null
-
-            override fun run(indicator: ProgressIndicator) {
-                indicator.isIndeterminate = true
-                result = UpdateChecker.checkForUpdate()
-            }
-
-            override fun onSuccess() {
-                handleResult(project, result)
-            }
-        })
+        performCheck(project)
     }
 
-    private fun handleResult(project: Project, result: UpdateResult?) {
-        when (result) {
-            is UpdateResult.Available -> showUpdateAvailableDialog(project, result)
-            is UpdateResult.UpToDate -> showUpToDateNotification(project)
-            is UpdateResult.Error -> showErrorNotification(project, result.message)
-            null -> showErrorNotification(project, "Unknown error")
+    companion object {
+        fun performCheck(project: Project) {
+            ProgressManager.getInstance().run(object : Task.Backgroundable(project, MyBundle["opencode.update.checking"], false) {
+                private var result: UpdateResult? = null
+
+                override fun run(indicator: ProgressIndicator) {
+                    indicator.isIndeterminate = true
+                    result = UpdateChecker.checkForUpdate()
+                }
+
+                override fun onSuccess() {
+                    handleResult(project, result)
+                }
+            })
         }
-    }
 
-    private fun showUpdateAvailableDialog(project: Project, result: UpdateResult.Available) {
-        val currentVersion = UpdateChecker.getCurrentVersion() ?: "?"
-        val message = MyBundle["opencode.update.available.message", currentVersion, result.latestVersion]
-
-        val choice = Messages.showYesNoDialog(
-            project,
-            message,
-            MyBundle["opencode.update.available.title"],
-            MyBundle["opencode.update.gotoRelease"],
-            MyBundle["opencode.update.cancel"],
-            Messages.getQuestionIcon()
-        )
-
-        if (choice == Messages.YES) {
-            BrowserUtil.browse(result.downloadUrl)
+        private fun handleResult(project: Project, result: UpdateResult?) {
+            when (result) {
+                is UpdateResult.Available -> showUpdateAvailableDialog(project, result)
+                is UpdateResult.UpToDate -> showUpToDateNotification(project)
+                is UpdateResult.Error -> showErrorNotification(project, result.message)
+                null -> showErrorNotification(project, "Unknown error")
+            }
         }
-    }
 
-    private fun showUpToDateNotification(project: Project) {
-        val currentVersion = UpdateChecker.getCurrentVersion() ?: "?"
-        val notifGroup = NotificationGroupManager.getInstance().getNotificationGroup("OpenCode Notifications")
-        notifGroup.createNotification(
-            MyBundle["opencode.update.uptodate.title"],
-            MyBundle["opencode.update.uptodate.message", currentVersion],
-            NotificationType.INFORMATION
-        ).notify(project)
-    }
+        private fun showUpdateAvailableDialog(project: Project, result: UpdateResult.Available) {
+            val currentVersion = UpdateChecker.getCurrentVersion() ?: "?"
+            val message = MyBundle["opencode.update.available.message", currentVersion, result.latestVersion]
 
-    private fun showErrorNotification(project: Project, message: String) {
-        val notifGroup = NotificationGroupManager.getInstance().getNotificationGroup("OpenCode Notifications")
-        notifGroup.createNotification(
-            MyBundle["opencode.update.error.title"],
-            MyBundle["opencode.update.error.message", message],
-            NotificationType.ERROR
-        ).notify(project)
+            val choice = Messages.showYesNoDialog(
+                project,
+                message,
+                MyBundle["opencode.update.available.title"],
+                MyBundle["opencode.update.gotoRelease"],
+                MyBundle["opencode.update.cancel"],
+                Messages.getQuestionIcon()
+            )
+
+            if (choice == Messages.YES) {
+                BrowserUtil.browse(result.downloadUrl)
+            }
+        }
+
+        private fun showUpToDateNotification(project: Project) {
+            val currentVersion = UpdateChecker.getCurrentVersion() ?: "?"
+            val notifGroup = NotificationGroupManager.getInstance().getNotificationGroup("OpenCode Notifications")
+            notifGroup.createNotification(
+                MyBundle["opencode.update.uptodate.title"],
+                MyBundle["opencode.update.uptodate.message", currentVersion],
+                NotificationType.INFORMATION
+            ).notify(project)
+        }
+
+        private fun showErrorNotification(project: Project, message: String) {
+            val notifGroup = NotificationGroupManager.getInstance().getNotificationGroup("OpenCode Notifications")
+            notifGroup.createNotification(
+                MyBundle["opencode.update.error.title"],
+                MyBundle["opencode.update.error.message", message],
+                NotificationType.ERROR
+            ).notify(project)
+        }
     }
 }
