@@ -30,5 +30,11 @@
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <add-to-group group-id="EditorTabPopupMenu" anchor="last"/>
         </action>
+        <action
+            id="OpenCode.CheckUpdate"
+            class="com.github.hunterxxn.opencodugin.update.CheckUpdateAction"
+            text="Check for Updates"
+            description="Check for the latest version of OpenCodugin">
+        </action>
     </actions>
 </idea-plugin>

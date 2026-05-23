@@ -1,5 +1,9 @@
 package com.github.hunterxxn.opencodugin.terminal
 
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
@@ -10,6 +14,7 @@ import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.TabsListener
 import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.github.hunterxxn.opencodugin.MyBundle
+import javax.swing.Box
 import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.JToolBar
@@ -92,6 +97,28 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
                     sessionManager.removePanel(session.id)
                 }
                 tabs.removeTab(selectedInfo)
+            }
+        })
+
+        toolbar.add(Box.createHorizontalGlue())
+
+        toolbar.add(JButton(MyBundle["opencode.checkUpdate"]).apply {
+            addActionListener {
+                val actionManager = ActionManager.getInstance()
+                val action = actionManager.getAction("OpenCode.CheckUpdate")
+                val dataContext = DataContext { dataId ->
+                    if (PlatformCoreDataKeys.PROJECT.`is`(dataId)) project else null
+                }
+                val event = AnActionEvent(
+                    dataContext,
+                    action?.templatePresentation?.clone() ?: com.intellij.openapi.actionSystem.Presentation(),
+                    "OpenCodeToolbar",
+                    com.intellij.openapi.actionSystem.ActionUiKind.NONE,
+                    null,
+                    0,
+                    actionManager
+                )
+                action?.actionPerformed(event)
             }
         })
 
