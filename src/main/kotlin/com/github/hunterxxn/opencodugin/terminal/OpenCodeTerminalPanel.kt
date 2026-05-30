@@ -12,7 +12,7 @@ import java.awt.Toolkit
 import java.awt.event.AWTEventListener
 import java.awt.event.MouseWheelEvent
 import java.io.IOException
-import java.nio.charset.Charset
+import java.io.InputStreamReader
 import javax.swing.JPanel
 import javax.swing.JScrollBar
 import javax.swing.JScrollPane
@@ -51,7 +51,7 @@ class OpenCodeTerminalPanel(
                         val button = if (event.wheelRotation < 0) 64 else 65
                         val seq = "\u001b[?1006h\u001b[<$button;3;3M"
                         try {
-                            process.outputStream.write(seq.toByteArray(Charset.defaultCharset()))
+                            process.outputStream.write(seq.toByteArray(Charsets.UTF_8))
                             process.outputStream.flush()
                         } catch (_: Exception) {
                         }
@@ -103,15 +103,10 @@ class OpenCodeTerminalPanel(
 private class PtyTtyConnector(
     private val process: PtyProcess
 ) : TtyConnector {
-    private val charset = Charset.forName("UTF-8")
+    private val reader = InputStreamReader(process.inputStream, Charsets.UTF_8)
     private var lastWasPress = false
     private val sgrRelease = Regex("\u001b\\[<3;\\d+;\\d+M")
     private val sgrPress = Regex("\u001b\\[<[02];\\d+;\\d+M")
-
-    init {
-        com.intellij.openapi.diagnostic.Logger.getInstance("OpenCode.PtyTty")
-            .info("TtyConnector charset: $charset, default was: ${Charset.defaultCharset()}")
-    }
 
     override fun close() {
         if (process.isAlive) {
@@ -127,17 +122,8 @@ private class PtyTtyConnector(
 
     override fun read(buf: CharArray, offset: Int, length: Int): Int {
         return try {
-            val inputStream = process.inputStream
-            val byteBuf = ByteArray(length)
-            val len = inputStream.read(byteBuf, 0, length)
-            if (len <= 0) return len
-
-            val str = String(byteBuf, 0, len, charset)
-            val n = minOf(str.length, buf.size - offset)
-            for (i in 0 until n) {
-                buf[offset + i] = str[i]
-            }
-            n
+            val n = reader.read(buf, offset, length)
+            if (n < 0) -1 else n
         } catch (e: IOException) {
             -1
         }
@@ -145,7 +131,7 @@ private class PtyTtyConnector(
 
     override fun write(bytes: ByteArray) {
         try {
-            val str = String(bytes, 0, bytes.size, charset)
+            val str = String(bytes, Charsets.UTF_8)
 
             if (sgrRelease.matches(str)) {
                 if (!lastWasPress) return
@@ -164,20 +150,21 @@ private class PtyTtyConnector(
 
     override fun ready(): Boolean {
         return try {
-            process.inputStream.available() > 0
+            reader.ready()
         } catch (_: IOException) {
             false
         }
     }
 
     override fun write(string: String) {
-        write(string.toByteArray(charset))
+        write(string.toByteArray(Charsets.UTF_8))
     }
 
     override fun waitFor(): Int {
         return try {
             process.waitFor()
-        } catch (_: InterruptedException) {
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
             -1
         }
     }
