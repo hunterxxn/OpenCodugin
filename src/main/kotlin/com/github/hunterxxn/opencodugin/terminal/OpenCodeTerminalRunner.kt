@@ -4,7 +4,6 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.pty4j.PtyProcess
 import com.pty4j.PtyProcessBuilder
-import java.nio.charset.Charset
 
 object OpenCodeTerminalRunner {
 
@@ -25,7 +24,7 @@ object OpenCodeTerminalRunner {
                     .command(command)
                     .redirectErrorStream(true)
                     .start()
-                val output = result.inputStream.bufferedReader(Charset.defaultCharset()).readText().trim()
+                val output = result.inputStream.bufferedReader(Charsets.UTF_8).readText().trim()
                 result.waitFor()
                 if (result.exitValue() == 0 && output.isNotBlank()) {
                     val firstLine = output.lines().first().trim()
@@ -48,6 +47,8 @@ object OpenCodeTerminalRunner {
         env.putAll(System.getenv())
         env["TERM"] = "xterm-256color"
         env["COLORTERM"] = "truecolor"
+        env["LANG"] = "en_US.UTF-8"
+        env["LC_ALL"] = "en_US.UTF-8"
 
         thisLogger().info("Starting opencode: [$opencodePath] in $workingDirectory")
 

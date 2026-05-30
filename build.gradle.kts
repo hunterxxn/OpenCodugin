@@ -13,7 +13,7 @@ dependencies {
 
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
-        intellijIdea("2024.3.3")
+        intellijIdeaCommunity("2024.3.3")
         testFramework(TestFrameworkType.Platform)
     }
 }
@@ -25,6 +25,9 @@ intellijPlatform {
 }
 
 tasks {
+    test {
+        jvmArgs("-Didea.force.use.jdk.classloader=true")
+    }
     patchPluginXml {
         sinceBuild.set("242")
         untilBuild.set("261.*")

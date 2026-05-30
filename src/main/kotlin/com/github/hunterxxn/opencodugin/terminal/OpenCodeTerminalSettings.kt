@@ -2,9 +2,13 @@ package com.github.hunterxxn.opencodugin.terminal
 
 import com.intellij.openapi.diagnostic.thisLogger
 import com.jediterm.terminal.TerminalColor
+import com.jediterm.terminal.ui.TerminalActionPresentation
 import com.jediterm.terminal.ui.settings.DefaultSettingsProvider
 import java.awt.Font
 import java.awt.GraphicsEnvironment
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
+import javax.swing.KeyStroke
 
 class OpenCodeTerminalSettings : DefaultSettingsProvider() {
 
@@ -15,6 +19,14 @@ class OpenCodeTerminalSettings : DefaultSettingsProvider() {
     override fun copyOnSelect(): Boolean = false
 
     override fun pasteOnMiddleMouseClick(): Boolean = false
+
+    override fun getPasteActionPresentation(): TerminalActionPresentation {
+        val keystrokes = listOf(
+            KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_DOWN_MASK),
+            KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK)
+        )
+        return TerminalActionPresentation("Paste", keystrokes)
+    }
 
     override fun getDefaultBackground(): TerminalColor =
         TerminalColor.rgb(30, 30, 30)
@@ -31,9 +43,8 @@ class OpenCodeTerminalSettings : DefaultSettingsProvider() {
 
         val allFonts = GraphicsEnvironment.getLocalGraphicsEnvironment().availableFontFamilyNames
         val candidates = listOf(
-            "Maple Mono NF CN", "Sarasa Fixed SC",
-            "SimSun", "新宋体", "NSimSun",
-            "Cascadia Code", "JetBrains Mono"
+            "JetBrains Mono", "Cascadia Code", "Consolas",
+            "Maple Mono NF CN"
         )
         val name = candidates.firstOrNull { it in allFonts } ?: "Monospaced"
         thisLogger().info("Selected terminal font: $name, size: $size")
