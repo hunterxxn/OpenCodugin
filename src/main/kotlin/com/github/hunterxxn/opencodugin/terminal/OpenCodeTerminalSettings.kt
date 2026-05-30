@@ -44,7 +44,7 @@ class OpenCodeTerminalSettings : DefaultSettingsProvider() {
         val allFonts = GraphicsEnvironment.getLocalGraphicsEnvironment().availableFontFamilyNames
         val candidates = listOf(
             "JetBrains Mono", "Cascadia Code", "Consolas",
-            "Maple Mono NF CN", "Sarasa Fixed SC"
+            "Maple Mono NF CN"
         )
         val name = candidates.firstOrNull { it in allFonts } ?: "Monospaced"
         thisLogger().info("Selected terminal font: $name, size: $size")
