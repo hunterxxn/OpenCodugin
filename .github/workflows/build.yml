@@ -171,12 +171,8 @@ jobs:
           distribution: zulu
           java-version: 21
 
-      # Setup Gradle
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
-        with:
-          dependency-graph: disabled
-          cache-read-only: true
+      # releaseDraft 不构建代码，跳过 gradle/actions/setup-gradle
+      # gradlew 自带 wrapper 下载，无需 cache restore（4GB IDE 缓存常引发 BlobNotFound）
 
       # Remove old release drafts by using the curl request for the available releases with a draft flag
       - name: Remove Old Release Drafts
