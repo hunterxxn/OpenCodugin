@@ -24,11 +24,6 @@ intellijPlatform {
             current()
         }
         failureLevel = listOf(VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS)
-        ides {
-            // Only verify the two versions actually used, avoids downloading 6+ IDEs in CI
-            intellijIdeaCommunity("2024.3.3")
-            intellijIdeaCommunity("2026.1.1")
-        }
     }
 }
 
