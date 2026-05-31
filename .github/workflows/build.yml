@@ -34,8 +34,8 @@ jobs:
       - name: Maximize Build Space
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
-          tool-cache: true
-          large-packages: true
+          tool-cache: false
+          large-packages: false
 
       # Check out the current repository
       - name: Fetch Sources
@@ -51,8 +51,6 @@ jobs:
       # Setup Gradle
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
-        with:
-          gradle-home-cache-cleanup: true
 
       # Build plugin
       - name: Build plugin
@@ -76,8 +74,8 @@ jobs:
       - name: Maximize Build Space
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
-          tool-cache: true
-          large-packages: true
+          tool-cache: false
+          large-packages: false
 
       # Check out the current repository
       - name: Fetch Sources
@@ -95,7 +93,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: true
-          gradle-home-cache-cleanup: true
 
       # Run tests
       - name: Run Tests
@@ -120,8 +117,8 @@ jobs:
       - name: Maximize Build Space
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
-          tool-cache: true
-          large-packages: true
+          tool-cache: false
+          large-packages: false
 
       # Check out the current repository
       - name: Fetch Sources
@@ -139,7 +136,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: true
-          gradle-home-cache-cleanup: true
 
       # Run Verify Plugin task and IntelliJ Plugin Verifier tool
       - name: Run Plugin Verification tasks
