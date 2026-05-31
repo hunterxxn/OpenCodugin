@@ -20,6 +20,9 @@ dependencies {
 
 intellijPlatform {
     pluginVerification {
+        ides {
+            current()
+        }
         failureLevel = listOf(VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS)
         ides {
             // Only verify the two versions actually used, avoids downloading 6+ IDEs in CI
