@@ -22,8 +22,8 @@ jobs:
       - name: Maximize Build Space
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
-          tool-cache: true
-          large-packages: true
+          tool-cache: false
+          large-packages: false
 
       # Check out the current repository
       - name: Fetch Sources
@@ -43,7 +43,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: true
-          gradle-home-cache-cleanup: true
 
       # Update the Unreleased section with the current release note
       - name: Patch Changelog
