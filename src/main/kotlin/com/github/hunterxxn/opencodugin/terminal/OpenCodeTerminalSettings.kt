@@ -14,11 +14,19 @@ class OpenCodeTerminalSettings : DefaultSettingsProvider() {
 
     override fun enableMouseReporting(): Boolean = true
 
-    override fun forceActionOnMouseReporting(): Boolean = false
+    override fun forceActionOnMouseReporting(): Boolean = true
 
     override fun copyOnSelect(): Boolean = false
 
     override fun pasteOnMiddleMouseClick(): Boolean = false
+
+    override fun getCopyActionPresentation(): TerminalActionPresentation {
+        val keystrokes = listOf(
+            KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK),
+            KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK)
+        )
+        return TerminalActionPresentation("Copy", keystrokes)
+    }
 
     override fun getPasteActionPresentation(): TerminalActionPresentation {
         val keystrokes = listOf(
