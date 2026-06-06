@@ -9,8 +9,8 @@ class OpenCodeTerminalSettingsTest : BasePlatformTestCase() {
         assertTrue("Mouse reporting should be enabled", settings.enableMouseReporting())
     }
 
-    fun testMouseActionsNotForced() {
+    fun testMouseActionsForced() {
         val settings = OpenCodeTerminalSettings()
-        assertFalse("Should not force actions on mouse reporting", settings.forceActionOnMouseReporting())
+        assertTrue("Should force actions on mouse reporting for text selection", settings.forceActionOnMouseReporting())
     }
 }
