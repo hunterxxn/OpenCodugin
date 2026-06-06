@@ -11,7 +11,7 @@ sealed class UpdateResult {
 }
 
 object UpdateChecker {
-    private const val GITHUB_API_URL = "https://api.github.com/repos/hunterxxn/opencodugin/releases/latest"
+    private const val GITHUB_API_URL = "https://api.github.com/repos/hunterxxn/OpenCodugin/releases/latest"
 
     internal var mockReleaseTag: String? = null
     internal var mockReleaseUrl: String? = null
@@ -19,7 +19,7 @@ object UpdateChecker {
     fun checkForUpdate(): UpdateResult {
         try {
             val (tagName, htmlUrl) = if (mockReleaseTag != null) {
-                mockReleaseTag!! to (mockReleaseUrl ?: "https://github.com/hunterxxn/opencodugin/releases")
+                mockReleaseTag!! to (mockReleaseUrl ?: "https://github.com/hunterxxn/OpenCodugin/releases")
             } else {
                 val json = fetchLatestReleaseJson()
                     ?: return UpdateResult.Error("Network error, please check your connection")
@@ -56,7 +56,8 @@ object UpdateChecker {
             connection.readTimeout = 5000
 
             val responseCode = connection.responseCode
-            if (responseCode == 404) return ""
+            if (responseCode == 404)
+                throw java.io.IOException("No release found — ensure at least one release is published on GitHub (not draft)")
             if (responseCode != HttpURLConnection.HTTP_OK) return null
             return connection.inputStream.bufferedReader().use { it.readText() }
         } finally {

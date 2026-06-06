@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Changed
+- 终端文本选择改为直接拖拽即可选中，不再需要按住 Shift
+- 复制快捷键改为 Ctrl+C（有选中文本时复制，无选中时发送 SIGINT），Ctrl+Shift+C 作为备用
+
+## [0.1.4] - 2026-05-31
+
+### Changed
 - 缩窄 Plugin Verifier 验证范围至仅 2024.3.3 + 2026.1.1，优化 CI 磁盘占用
 
 ### Fixed
