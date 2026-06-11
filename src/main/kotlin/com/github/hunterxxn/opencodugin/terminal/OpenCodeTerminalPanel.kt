@@ -32,14 +32,18 @@ class OpenCodeTerminalPanel(
         hideScrollBars(terminalWidget)
     }
 
-    fun startSession(): OpenCodeSession? {
+    fun startSession(cliPath: String? = null): OpenCodeSession? {
         if (session?.isAlive == true) {
             thisLogger().warn("Session already running")
             return session
         }
 
         return try {
-            val process = OpenCodeTerminalRunner.createSession(project, workingDirectory)
+            val process = if (cliPath != null) {
+                OpenCodeTerminalRunner.createSession(project, workingDirectory, cliPath)
+            } else {
+                OpenCodeTerminalRunner.createSession(project, workingDirectory)
+            }
             val ttyConnector = PtyTtyConnector(process)
 
             terminalWidget.createTerminalSession(ttyConnector)

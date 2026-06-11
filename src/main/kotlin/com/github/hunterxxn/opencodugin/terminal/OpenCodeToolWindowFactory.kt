@@ -35,15 +35,18 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
         toolWindow.contentManager.addContent(content)
 
         val defaultWorkingDir = project.basePath ?: System.getProperty("user.home")
-        val defaultPanel = sessionManager.createPanel(defaultWorkingDir)
-        val defaultSession = defaultPanel.getCurrentSession()
-        if (defaultSession != null) {
-            val tabInfo = TabInfo(defaultPanel.component).apply {
-                setText(MyBundle["opencode.session.tab.default"])
+        val cliPath = CliSelectorDialog.selectCli(project)
+        if (cliPath != null) {
+            val cliSession = sessionManager.createPanel(defaultWorkingDir, cliPath)
+            val defaultSession = cliSession.panel.getCurrentSession()
+            if (defaultSession != null) {
+                val tabInfo = TabInfo(cliSession.panel.component).apply {
+                    setText("${cliSession.cliName} 1")
+                }
+                tabs.addTab(tabInfo)
+                tabs.select(tabInfo, true)
+                sessionManager.setActiveSession(defaultSession.id)
             }
-            tabs.addTab(tabInfo)
-            tabs.select(tabInfo, true)
-            sessionManager.setActiveSession(defaultSession.id)
         }
 
         tabs.addListener(object : TabsListener {
@@ -72,11 +75,12 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
         toolbar.add(JButton(MyBundle["opencode.session.new"]).apply {
             addActionListener {
                 val workingDir = project.basePath ?: System.getProperty("user.home")
-                val panel = sessionManager.createPanel(workingDir)
-                val session = panel.getCurrentSession()
+                val cliPath = CliSelectorDialog.selectCli(project) ?: return@addActionListener
+                val cliSession = sessionManager.createPanel(workingDir, cliPath)
+                val session = cliSession.panel.getCurrentSession()
                 if (session != null) {
-                    val tabInfo = TabInfo(panel.component).apply {
-                        setText("${MyBundle["opencode.session.tab.default"]} ${tabs.tabCount + 1}")
+                    val tabInfo = TabInfo(cliSession.panel.component).apply {
+                        setText("${cliSession.cliName} ${tabs.tabCount + 1}")
                     }
                     tabs.addTab(tabInfo)
                     tabs.select(tabInfo, true)
