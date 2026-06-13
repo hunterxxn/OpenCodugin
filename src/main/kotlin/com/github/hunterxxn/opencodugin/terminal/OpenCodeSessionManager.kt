@@ -1,5 +1,6 @@
 package com.github.hunterxxn.opencodugin.terminal
 
+import com.github.hunterxxn.opencodugin.commands.CliProvider
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import java.util.concurrent.ConcurrentHashMap
@@ -21,21 +22,14 @@ class OpenCodeSessionManager(private val project: Project) {
         return panels[id]
     }
 
-    fun createPanel(workingDirectory: String, cliPath: String? = null): CliSession {
-        val cliName = extractCliName(cliPath)
+    fun createPanel(workingDirectory: String, provider: CliProvider, cliPath: String? = null): CliSession {
         val panel = OpenCodeTerminalPanel(project, workingDirectory)
-        panel.startSession(cliPath)
+        panel.startSession(provider, cliPath)
         val session = panel.getCurrentSession()
         if (session != null) {
             panels[session.id] = panel
         }
-        return CliSession(panel, cliName)
-    }
-
-    private fun extractCliName(cliPath: String?): String {
-        if (cliPath.isNullOrBlank()) return "opencode"
-        val fileName = cliPath.substringAfterLast('\\').substringAfterLast('/')
-        return fileName.substringBeforeLast('.')
+        return CliSession(panel, provider)
     }
 
     fun getSessions(): Map<String, OpenCodeTerminalPanel> = panels.toMap()
@@ -53,4 +47,4 @@ class OpenCodeSessionManager(private val project: Project) {
     }
 }
 
-data class CliSession(val panel: OpenCodeTerminalPanel, val cliName: String)
+data class CliSession(val panel: OpenCodeTerminalPanel, val provider: CliProvider)

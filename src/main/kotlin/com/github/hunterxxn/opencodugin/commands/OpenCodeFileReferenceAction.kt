@@ -1,10 +1,12 @@
 package com.github.hunterxxn.opencodugin.commands
 
+import com.github.hunterxxn.opencodugin.terminal.OpenCodeSessionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -25,8 +27,13 @@ class OpenCodeFileReferenceAction : AnAction(), DumbAware {
 
         val editor = e.getData(CommonDataKeys.EDITOR)
 
+        val sessionManager = project.service<OpenCodeSessionManager>()
+        val activePanel = sessionManager.getActivePanel()
+        val currentSession = activePanel?.getCurrentSession()
+        val provider = currentSession?.cliProvider ?: OpenCodeCliProvider
+
         val refs = files.map { file ->
-            OpenCodeContextInjector.formatFileRef(file, project, editor)
+            OpenCodeContextInjector.formatFileRef(provider, file, project, editor)
         }
 
         val text = refs.joinToString(" ")

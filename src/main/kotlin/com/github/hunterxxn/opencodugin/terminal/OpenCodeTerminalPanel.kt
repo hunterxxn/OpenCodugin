@@ -1,5 +1,6 @@
 package com.github.hunterxxn.opencodugin.terminal
 
+import com.github.hunterxxn.opencodugin.commands.CliProvider
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.jediterm.terminal.TtyConnector
@@ -36,7 +37,7 @@ class OpenCodeTerminalPanel(
         hideScrollBars(terminalWidget)
     }
 
-    fun startSession(cliPath: String? = null): OpenCodeSession? {
+    fun startSession(provider: CliProvider, cliPath: String? = null): OpenCodeSession? {
         if (session?.isAlive == true) {
             thisLogger().warn("Session already running")
             return session
@@ -48,7 +49,7 @@ class OpenCodeTerminalPanel(
             } else {
                 OpenCodeTerminalRunner.createSession(project, workingDirectory)
             }
-            val ttyConnector = PtyTtyConnector(process)
+            val ttyConnector = PtyTtyConnector(process, provider.displayName)
 
             terminalWidget.createTerminalSession(ttyConnector)
             terminalWidget.start()
@@ -93,7 +94,8 @@ class OpenCodeTerminalPanel(
             session = OpenCodeSession(
                 workingDirectory = workingDirectory,
                 process = process,
-                terminalWidget = terminalWidget
+                terminalWidget = terminalWidget,
+                cliProvider = provider
             )
 
             thisLogger().info("OpenCode session started in $workingDirectory")
@@ -135,7 +137,8 @@ class OpenCodeTerminalPanel(
 }
 
 private class PtyTtyConnector(
-    private val process: PtyProcess
+    private val process: PtyProcess,
+    private val providerName: String = "OpenCode"
 ) : TtyConnector {
     private val reader = InputStreamReader(process.inputStream, Charsets.UTF_8)
     private var lastWasPress = false
@@ -152,7 +155,7 @@ private class PtyTtyConnector(
         process.winSize = com.pty4j.WinSize(termSize.columns, termSize.rows)
     }
 
-    override fun getName(): String = "OpenCode PTY"
+    override fun getName(): String = "$providerName PTY"
 
     override fun read(buf: CharArray, offset: Int, length: Int): Int {
         return try {
