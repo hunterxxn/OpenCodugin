@@ -52,10 +52,21 @@ object OpenCodeTerminalRunner {
         env["LANG"] = "en_US.UTF-8"
         env["LC_ALL"] = "en_US.UTF-8"
 
-        thisLogger().info("Starting opencode: [$opencodePath] in $workingDirectory")
+        val isPath = opencodePath.contains('\\') || opencodePath.contains('/')
+        val parts = if (isPath) {
+            listOf(opencodePath)
+        } else {
+            val tokens = opencodePath.split("\\s+".toRegex()).filter { it.isNotBlank() }
+            if (tokens.isNotEmpty()) {
+                listOf(findCliPath(tokens.first())) + tokens.drop(1)
+            } else {
+                listOf(opencodePath)
+            }
+        }
+        thisLogger().info("Starting opencode: $parts in $workingDirectory")
 
         return PtyProcessBuilder()
-            .setCommand(arrayOf(opencodePath))
+            .setCommand(parts.toTypedArray())
             .setDirectory(workingDirectory)
             .setEnvironment(env)
             .setInitialColumns(INITIAL_COLS)
