@@ -14,7 +14,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow
             factoryClass="com.github.hunterxxn.opencodugin.terminal.OpenCodeToolWindowFactory"
-            id="OpenCode"
+            id="OpenCodugin"
             anchor="bottom"/>
         <notificationGroup id="OpenCode Notifications"
             displayType="BALLOON"/>

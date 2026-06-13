@@ -21,14 +21,21 @@ class OpenCodeSessionManager(private val project: Project) {
         return panels[id]
     }
 
-    fun createPanel(workingDirectory: String): OpenCodeTerminalPanel {
+    fun createPanel(workingDirectory: String, cliPath: String? = null): CliSession {
+        val cliName = extractCliName(cliPath)
         val panel = OpenCodeTerminalPanel(project, workingDirectory)
-        panel.startSession()
+        panel.startSession(cliPath)
         val session = panel.getCurrentSession()
         if (session != null) {
             panels[session.id] = panel
         }
-        return panel
+        return CliSession(panel, cliName)
+    }
+
+    private fun extractCliName(cliPath: String?): String {
+        if (cliPath.isNullOrBlank()) return "opencode"
+        val fileName = cliPath.substringAfterLast('\\').substringAfterLast('/')
+        return fileName.substringBeforeLast('.')
     }
 
     fun getSessions(): Map<String, OpenCodeTerminalPanel> = panels.toMap()
@@ -45,3 +52,5 @@ class OpenCodeSessionManager(private val project: Project) {
         panels.clear()
     }
 }
+
+data class CliSession(val panel: OpenCodeTerminalPanel, val cliName: String)

@@ -10,11 +10,13 @@ object OpenCodeTerminalRunner {
     private const val INITIAL_COLS = 120
     private const val INITIAL_ROWS = 40
 
-    fun findOpencodePath(project: Project): String {
+    fun findOpencodePath(project: Project): String = findCliPath("opencode")
+
+    fun findCliPath(name: String): String {
         val candidates = if (isWindows()) {
-            listOf("opencode.cmd", "opencode.exe", "opencode")
+            listOf("$name.cmd", "$name.exe", name)
         } else {
-            listOf("opencode")
+            listOf(name)
         }
 
         for (cmd in candidates) {
@@ -28,14 +30,14 @@ object OpenCodeTerminalRunner {
                 result.waitFor()
                 if (result.exitValue() == 0 && output.isNotBlank()) {
                     val firstLine = output.lines().first().trim()
-                    thisLogger().info("Found opencode at: $firstLine")
+                    thisLogger().info("Found $name at: $firstLine")
                     return firstLine
                 }
             } catch (_: Exception) {
             }
         }
 
-        return "opencode"
+        return name
     }
 
     fun createSession(
@@ -50,10 +52,21 @@ object OpenCodeTerminalRunner {
         env["LANG"] = "en_US.UTF-8"
         env["LC_ALL"] = "en_US.UTF-8"
 
-        thisLogger().info("Starting opencode: [$opencodePath] in $workingDirectory")
+        val isPath = opencodePath.contains('\\') || opencodePath.contains('/')
+        val parts = if (isPath) {
+            listOf(opencodePath)
+        } else {
+            val tokens = opencodePath.split("\\s+".toRegex()).filter { it.isNotBlank() }
+            if (tokens.isNotEmpty()) {
+                listOf(findCliPath(tokens.first())) + tokens.drop(1)
+            } else {
+                listOf(opencodePath)
+            }
+        }
+        thisLogger().info("Starting opencode: $parts in $workingDirectory")
 
         return PtyProcessBuilder()
-            .setCommand(arrayOf(opencodePath))
+            .setCommand(parts.toTypedArray())
             .setDirectory(workingDirectory)
             .setEnvironment(env)
             .setInitialColumns(INITIAL_COLS)
