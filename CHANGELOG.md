@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Added
+- **CliProvider 架构重构** — 引入 `CliProvider` 接口策略模式，支持按 TUI 类型自定义文件引用格式
+- **Reasonix TUI 支持** — 新增 Reasonix 启动选项，使用 `@path/to/file` 引用格式
+- **CliProviderRegistry** — 集中管理所有 TUI 提供者，新增 TUI 只需实现接口并注册
+
+### Changed
+- 首次点击插件按钮直接弹出 TUI 选择面板，不再显示空白占位
+- PTY 进程创建移至后台线程，UI 响应更流畅
+
+### Fixed
+- 修复选择 TUI 后终端面板未正确显示的问题
+
+## [0.1.6] - 2026-06-13
+
 ### Changed
 - CLI 选择从模态弹窗改为下拉菜单风格，启动时直接弹出选项，New Session 按钮旁弹出
 - 启动工具窗口时不再显示空白面板，选择 CLI 后直接创建会话

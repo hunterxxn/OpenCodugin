@@ -3,7 +3,8 @@ package com.github.hunterxxn.opencodugin.commands
 object CliProviderRegistry {
     private val providers = mutableListOf<CliProvider>(
         OpenCodeCliProvider,
-        MimoCliProvider
+        MimoCliProvider,
+        ReasonixCliProvider
     )
 
     fun getAll(): List<CliProvider> = providers.toList()
