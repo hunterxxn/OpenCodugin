@@ -15,6 +15,7 @@ import javax.swing.Box
 import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.JToolBar
+import javax.swing.SwingUtilities
 import java.awt.BorderLayout
 
 class OpenCodeToolWindowFactory : ToolWindowFactory {
@@ -37,22 +38,24 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
         toolWindow.contentManager.addContent(content)
 
         val defaultWorkingDir = project.basePath ?: System.getProperty("user.home")
-        CliPopupMenu.showPopupAtCenter(project, placeholder) { cliPath ->
-            if (cliPath != null) {
-                mainPanel.remove(placeholder)
-                mainPanel.add(tabs.component, BorderLayout.CENTER)
-                mainPanel.revalidate()
-                mainPanel.repaint()
+        SwingUtilities.invokeLater {
+            CliPopupMenu.showPopupAtCenter(project, placeholder) { cliPath ->
+                if (cliPath != null) {
+                    mainPanel.remove(placeholder)
+                    mainPanel.add(tabs.component, BorderLayout.CENTER)
+                    mainPanel.revalidate()
+                    mainPanel.repaint()
 
-                val cliSession = sessionManager.createPanel(defaultWorkingDir, cliPath)
-                val defaultSession = cliSession.panel.getCurrentSession()
-                if (defaultSession != null) {
-                    val tabInfo = TabInfo(cliSession.panel.component).apply {
-                        setText("${cliSession.cliName} 1")
+                    val cliSession = sessionManager.createPanel(defaultWorkingDir, cliPath)
+                    val defaultSession = cliSession.panel.getCurrentSession()
+                    if (defaultSession != null) {
+                        val tabInfo = TabInfo(cliSession.panel.component).apply {
+                            setText("${cliSession.cliName} 1")
+                        }
+                        tabs.addTab(tabInfo)
+                        tabs.select(tabInfo, true)
+                        sessionManager.setActiveSession(defaultSession.id)
                     }
-                    tabs.addTab(tabInfo)
-                    tabs.select(tabInfo, true)
-                    sessionManager.setActiveSession(defaultSession.id)
                 }
             }
         }

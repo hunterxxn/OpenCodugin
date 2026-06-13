@@ -3,6 +3,17 @@
 ## [Unreleased]
 
 ### Changed
+- CLI 选择从模态弹窗改为下拉菜单风格，启动时直接弹出选项，New Session 按钮旁弹出
+- 启动工具窗口时不再显示空白面板，选择 CLI 后直接创建会话
+- 工具栏始终可见，即使首次未选择 CLI 也可通过 New Session 按钮重新选择
+- Custom 模式支持带参数的命令（如 `npx reasonix code`），自动解析命令路径
+
+### Fixed
+- 修复 Custom 模式输入的命令在 Windows 上无法执行的问题（自动补齐 `.cmd`/`.exe` 扩展名）
+
+## [0.1.5] - 2026-06-06
+
+### Changed
 - 终端文本选择改为直接拖拽即可选中，不再需要按住 Shift
 - 复制快捷键改为 Ctrl+C（有选中文本时复制，无选中时发送 SIGINT），Ctrl+Shift+C 作为备用
 
