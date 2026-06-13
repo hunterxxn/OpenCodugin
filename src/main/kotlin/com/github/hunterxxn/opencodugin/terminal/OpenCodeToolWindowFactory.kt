@@ -29,23 +29,31 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
 
         val mainPanel = JPanel(BorderLayout())
         mainPanel.add(createToolbar(project, sessionManager, tabs), BorderLayout.NORTH)
-        mainPanel.add(tabs.component, BorderLayout.CENTER)
+
+        val placeholder = JPanel()
+        mainPanel.add(placeholder, BorderLayout.CENTER)
 
         val content = ContentFactory.getInstance().createContent(mainPanel, null, false)
         toolWindow.contentManager.addContent(content)
 
         val defaultWorkingDir = project.basePath ?: System.getProperty("user.home")
-        val cliPath = CliSelectorDialog.selectCli(project)
-        if (cliPath != null) {
-            val cliSession = sessionManager.createPanel(defaultWorkingDir, cliPath)
-            val defaultSession = cliSession.panel.getCurrentSession()
-            if (defaultSession != null) {
-                val tabInfo = TabInfo(cliSession.panel.component).apply {
-                    setText("${cliSession.cliName} 1")
+        CliPopupMenu.showPopupAtCenter(project, placeholder) { cliPath ->
+            if (cliPath != null) {
+                mainPanel.remove(placeholder)
+                mainPanel.add(tabs.component, BorderLayout.CENTER)
+                mainPanel.revalidate()
+                mainPanel.repaint()
+
+                val cliSession = sessionManager.createPanel(defaultWorkingDir, cliPath)
+                val defaultSession = cliSession.panel.getCurrentSession()
+                if (defaultSession != null) {
+                    val tabInfo = TabInfo(cliSession.panel.component).apply {
+                        setText("${cliSession.cliName} 1")
+                    }
+                    tabs.addTab(tabInfo)
+                    tabs.select(tabInfo, true)
+                    sessionManager.setActiveSession(defaultSession.id)
                 }
-                tabs.addTab(tabInfo)
-                tabs.select(tabInfo, true)
-                sessionManager.setActiveSession(defaultSession.id)
             }
         }
 
@@ -72,22 +80,25 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
         val toolbar = JToolBar()
         toolbar.isFloatable = false
 
-        toolbar.add(JButton(MyBundle["opencode.session.new"]).apply {
-            addActionListener {
-                val workingDir = project.basePath ?: System.getProperty("user.home")
-                val cliPath = CliSelectorDialog.selectCli(project) ?: return@addActionListener
-                val cliSession = sessionManager.createPanel(workingDir, cliPath)
-                val session = cliSession.panel.getCurrentSession()
-                if (session != null) {
-                    val tabInfo = TabInfo(cliSession.panel.component).apply {
-                        setText("${cliSession.cliName} ${tabs.tabCount + 1}")
+        val newSessionButton = JButton(MyBundle["opencode.session.new"])
+        newSessionButton.addActionListener {
+            val workingDir = project.basePath ?: System.getProperty("user.home")
+            CliPopupMenu.showPopup(project, newSessionButton) { cliPath ->
+                if (cliPath != null) {
+                    val cliSession = sessionManager.createPanel(workingDir, cliPath)
+                    val session = cliSession.panel.getCurrentSession()
+                    if (session != null) {
+                        val tabInfo = TabInfo(cliSession.panel.component).apply {
+                            setText("${cliSession.cliName} ${tabs.tabCount + 1}")
+                        }
+                        tabs.addTab(tabInfo)
+                        tabs.select(tabInfo, true)
+                        sessionManager.setActiveSession(session.id)
                     }
-                    tabs.addTab(tabInfo)
-                    tabs.select(tabInfo, true)
-                    sessionManager.setActiveSession(session.id)
                 }
             }
-        })
+        }
+        toolbar.add(newSessionButton)
 
         toolbar.add(JButton(MyBundle["opencode.session.stop"]).apply {
             addActionListener {
