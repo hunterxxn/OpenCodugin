@@ -8,8 +8,11 @@ import com.pty4j.PtyProcess
 import java.awt.AWTEvent
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.KeyEventDispatcher
+import java.awt.KeyboardFocusManager
 import java.awt.Toolkit
 import java.awt.event.AWTEventListener
+import java.awt.event.KeyEvent
 import java.awt.event.MouseWheelEvent
 import java.io.IOException
 import java.io.InputStreamReader
@@ -26,6 +29,7 @@ class OpenCodeTerminalPanel(
     private val settings = OpenCodeTerminalSettings()
     private val terminalWidget: JediTermWidget = JediTermWidget(settings)
     private var session: OpenCodeSession? = null
+    private var shiftEnterDispatcher: KeyEventDispatcher? = null
 
     init {
         component.add(terminalWidget, BorderLayout.CENTER)
@@ -48,6 +52,28 @@ class OpenCodeTerminalPanel(
 
             terminalWidget.createTerminalSession(ttyConnector)
             terminalWidget.start()
+
+            val dispatcher = KeyEventDispatcher { event ->
+                if (event.id == KeyEvent.KEY_PRESSED
+                    && event.keyCode == KeyEvent.VK_ENTER
+                    && event.isShiftDown
+                    && !event.isControlDown
+                    && !event.isAltDown
+                    && !event.isMetaDown
+                    && terminalWidget.isAncestorOf(event.component)
+                ) {
+                    try {
+                        process.outputStream.write(byteArrayOf(0x0a))
+                        process.outputStream.flush()
+                    } catch (_: Exception) {
+                    }
+                    true
+                } else {
+                    false
+                }
+            }
+            KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(dispatcher)
+            shiftEnterDispatcher = dispatcher
 
             Toolkit.getDefaultToolkit().addAWTEventListener(
                 AWTEventListener { event ->
@@ -79,6 +105,10 @@ class OpenCodeTerminalPanel(
     }
 
     fun stopSession() {
+        shiftEnterDispatcher?.let {
+            KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(it)
+        }
+        shiftEnterDispatcher = null
         session?.close()
         session = null
     }
