@@ -17,6 +17,7 @@ import javax.swing.JPanel
 import javax.swing.JToolBar
 import javax.swing.SwingUtilities
 import java.awt.BorderLayout
+import kotlin.concurrent.thread
 
 class OpenCodeToolWindowFactory : ToolWindowFactory {
 
@@ -29,35 +30,18 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
         val tabs = JBTabsImpl(project)
 
         val mainPanel = JPanel(BorderLayout())
-        mainPanel.add(createToolbar(project, sessionManager, tabs), BorderLayout.NORTH)
-
         val placeholder = JPanel()
+        val toolbarResult = createToolbar(project, sessionManager, tabs, mainPanel, placeholder)
+        mainPanel.add(toolbarResult.first, BorderLayout.NORTH)
+        val newSessionButton = toolbarResult.second
+
         mainPanel.add(placeholder, BorderLayout.CENTER)
 
         val content = ContentFactory.getInstance().createContent(mainPanel, null, false)
         toolWindow.contentManager.addContent(content)
 
-        val defaultWorkingDir = project.basePath ?: System.getProperty("user.home")
         SwingUtilities.invokeLater {
-            CliPopupMenu.showPopupAtCenter(project, placeholder) { cliPath ->
-                if (cliPath != null) {
-                    mainPanel.remove(placeholder)
-                    mainPanel.add(tabs.component, BorderLayout.CENTER)
-                    mainPanel.revalidate()
-                    mainPanel.repaint()
-
-                    val cliSession = sessionManager.createPanel(defaultWorkingDir, cliPath)
-                    val defaultSession = cliSession.panel.getCurrentSession()
-                    if (defaultSession != null) {
-                        val tabInfo = TabInfo(cliSession.panel.component).apply {
-                            setText("${cliSession.cliName} 1")
-                        }
-                        tabs.addTab(tabInfo)
-                        tabs.select(tabInfo, true)
-                        sessionManager.setActiveSession(defaultSession.id)
-                    }
-                }
-            }
+            newSessionButton.doClick()
         }
 
         tabs.addListener(object : TabsListener {
@@ -78,25 +62,36 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
     private fun createToolbar(
         project: Project,
         sessionManager: OpenCodeSessionManager,
-        tabs: JBTabsImpl
-    ): JToolBar {
+        tabs: JBTabsImpl,
+        mainPanel: JPanel,
+        placeholder: JPanel
+    ): Pair<JToolBar, JButton> {
         val toolbar = JToolBar()
         toolbar.isFloatable = false
 
         val newSessionButton = JButton(MyBundle["opencode.session.new"])
         newSessionButton.addActionListener {
             val workingDir = project.basePath ?: System.getProperty("user.home")
-            CliPopupMenu.showPopup(project, newSessionButton) { cliPath ->
+            CliPopupMenu.showPopup(project, newSessionButton) { provider, cliPath ->
                 if (cliPath != null) {
-                    val cliSession = sessionManager.createPanel(workingDir, cliPath)
-                    val session = cliSession.panel.getCurrentSession()
-                    if (session != null) {
-                        val tabInfo = TabInfo(cliSession.panel.component).apply {
-                            setText("${cliSession.cliName} ${tabs.tabCount + 1}")
+                    mainPanel.remove(placeholder)
+                    mainPanel.add(tabs.component, BorderLayout.CENTER)
+                    mainPanel.revalidate()
+                    mainPanel.repaint()
+
+                    thread(name = "OpenCode-Session-Starter", isDaemon = true) {
+                        val cliSession = sessionManager.createPanel(workingDir, provider, cliPath)
+                        val session = cliSession.panel.getCurrentSession()
+                        if (session != null) {
+                            SwingUtilities.invokeLater {
+                                val tabInfo = TabInfo(cliSession.panel.component).apply {
+                                    setText("${cliSession.provider.displayName} ${tabs.tabCount + 1}")
+                                }
+                                tabs.addTab(tabInfo)
+                                tabs.select(tabInfo, true)
+                                sessionManager.setActiveSession(session.id)
+                            }
                         }
-                        tabs.addTab(tabInfo)
-                        tabs.select(tabInfo, true)
-                        sessionManager.setActiveSession(session.id)
                     }
                 }
             }
@@ -123,7 +118,7 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
             }
         })
 
-        return toolbar
+        return Pair(toolbar, newSessionButton)
     }
 
     private fun findPanelForTab(

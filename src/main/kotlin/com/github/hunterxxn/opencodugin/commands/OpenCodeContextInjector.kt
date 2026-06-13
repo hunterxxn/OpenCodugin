@@ -15,30 +15,8 @@ import java.nio.charset.StandardCharsets
 
 object OpenCodeContextInjector {
 
-    fun formatFileRef(file: VirtualFile, project: Project, editor: Editor?): String {
-        val basePath = project.basePath ?: return "@${file.name}"
-        val filePath = file.path
-        val relativePath = if (filePath.startsWith(basePath)) {
-            filePath.removePrefix(basePath).removePrefix("/").removePrefix("\\")
-        } else {
-            filePath
-        }
-
-        val lineRef = if (editor != null) {
-            val selectionModel = editor.selectionModel
-            if (selectionModel.hasSelection()) {
-                val doc = editor.document
-                val startLine = doc.getLineNumber(selectionModel.selectionStart) + 1
-                val endLine = doc.getLineNumber(selectionModel.selectionEnd) + 1
-                if (startLine == endLine) "#L$startLine" else "#L$startLine-$endLine"
-            } else {
-                null
-            }
-        } else {
-            null
-        }
-
-        return " @$relativePath${lineRef ?: ""} "
+    fun formatFileRef(provider: CliProvider, file: VirtualFile, project: Project, editor: Editor?): String {
+        return provider.buildFileReference(file, project, editor)
     }
 
     fun injectToTerminal(project: Project, text: String): Boolean {

@@ -1,6 +1,9 @@
 package com.github.hunterxxn.opencodugin.terminal
 
 import com.github.hunterxxn.opencodugin.MyBundle
+import com.github.hunterxxn.opencodugin.commands.CliProvider
+import com.github.hunterxxn.opencodugin.commands.CliProviderRegistry
+import com.github.hunterxxn.opencodugin.commands.OpenCodeCliProvider
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -14,7 +17,7 @@ object CliPopupMenu {
     fun showPopup(
         project: Project,
         anchorComponent: JComponent,
-        onSelected: (String?) -> Unit
+        onSelected: (CliProvider, String?) -> Unit
     ) {
         val actionGroup = createCliActionGroup(project, onSelected)
         val popup = JBPopupFactory.getInstance()
@@ -33,7 +36,7 @@ object CliPopupMenu {
     fun showPopupAtCenter(
         project: Project,
         contentComponent: JComponent,
-        onSelected: (String?) -> Unit
+        onSelected: (CliProvider, String?) -> Unit
     ) {
         val actionGroup = createCliActionGroup(project, onSelected)
         val popup = JBPopupFactory.getInstance()
@@ -51,21 +54,17 @@ object CliPopupMenu {
 
     private fun createCliActionGroup(
         project: Project,
-        onSelected: (String?) -> Unit
+        onSelected: (CliProvider, String?) -> Unit
     ): DefaultActionGroup {
         return DefaultActionGroup().apply {
-            add(object : AnAction(MyBundle["opencode.cli.option.opencode"]) {
-                override fun actionPerformed(e: AnActionEvent) {
-                    val path = OpenCodeTerminalRunner.findOpencodePath(project)
-                    onSelected(path)
-                }
-            })
-            add(object : AnAction(MyBundle["opencode.cli.option.mimo"]) {
-                override fun actionPerformed(e: AnActionEvent) {
-                    val path = OpenCodeTerminalRunner.findCliPath("mimo")
-                    onSelected(path)
-                }
-            })
+            CliProviderRegistry.getAll().forEach { provider ->
+                add(object : AnAction(provider.displayName) {
+                    override fun actionPerformed(e: AnActionEvent) {
+                        val path = provider.findExecutablePath(project)
+                        onSelected(provider, path)
+                    }
+                })
+            }
             add(object : AnAction(MyBundle["opencode.cli.option.custom"]) {
                 override fun actionPerformed(e: AnActionEvent) {
                     val input = Messages.showInputDialog(
@@ -75,7 +74,7 @@ object CliPopupMenu {
                         Messages.getQuestionIcon()
                     )
                     val path = input?.takeIf { it.isNotBlank() }
-                    onSelected(path)
+                    onSelected(OpenCodeCliProvider, path)
                 }
             })
         }
