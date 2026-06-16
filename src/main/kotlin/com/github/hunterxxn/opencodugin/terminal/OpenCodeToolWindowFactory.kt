@@ -1,19 +1,34 @@
 package com.github.hunterxxn.opencodugin.terminal
 
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
+import com.intellij.ui.JBColor
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.TabsListener
-import com.intellij.ui.tabs.impl.JBTabsImpl
+import com.intellij.ui.tabs.JBTabs
+import com.intellij.ui.tabs.JBTabsFactory
 import com.github.hunterxxn.opencodugin.MyBundle
 import com.github.hunterxxn.opencodugin.update.CheckUpdateAction
+import com.intellij.ui.Gray
+import java.awt.BasicStroke
+import java.awt.Color
+import java.awt.Component
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.RenderingHints
 import javax.swing.Box
+import javax.swing.Icon
 import javax.swing.JButton
+import javax.swing.JMenuItem
 import javax.swing.JPanel
+import javax.swing.JPopupMenu
 import javax.swing.JToolBar
 import javax.swing.SwingUtilities
 import java.awt.BorderLayout
@@ -27,7 +42,7 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val sessionManager = project.service<OpenCodeSessionManager>()
-        val tabs = JBTabsImpl(project)
+        val tabs = JBTabsFactory.createTabs(project)
 
         val mainPanel = JPanel(BorderLayout())
         val placeholder = JPanel()
@@ -62,7 +77,7 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
     private fun createToolbar(
         project: Project,
         sessionManager: OpenCodeSessionManager,
-        tabs: JBTabsImpl,
+        tabs: JBTabs,
         mainPanel: JPanel,
         placeholder: JPanel
     ): Pair<JToolBar, JButton> {
@@ -87,6 +102,41 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
                                 val tabInfo = TabInfo(cliSession.panel.component).apply {
                                     setText("${cliSession.provider.displayName} ${tabs.tabCount + 1}")
                                 }
+                                val closeIcon = object : Icon {
+                                    override fun getIconWidth() = 14
+                                    override fun getIconHeight() = 14
+                                    override fun paintIcon(c: Component?, g: Graphics, x: Int, y: Int) {
+                                        val g2 = g.create() as Graphics2D
+                                        try {
+                                            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+                                            val isHovered = try {
+                                                c != null && c.isShowing && c.mousePosition != null
+                                            } catch (_: Exception) { false }
+                                            if (isHovered) {
+                                                g2.color = JBColor(Color(180, 180, 180, 40), Color(180, 180, 180, 30))
+                                                g2.fillOval(x, y, 14, 14)
+                                                g2.color = JBColor(Gray._60, Gray._40)
+                                            } else {
+                                                g2.color = JBColor(Gray._120, Gray._160)
+                                            }
+                                            g2.stroke = BasicStroke(1.8f)
+                                            g2.drawLine(x + 3, y + 3, x + 11, y + 11)
+                                            g2.drawLine(x + 11, y + 3, x + 3, y + 11)
+                                        } finally {
+                                            g2.dispose()
+                                        }
+                                    }
+                                }
+                                tabInfo.setTabLabelActions(DefaultActionGroup(object : AnAction(closeIcon) {
+                                    override fun actionPerformed(e: AnActionEvent) {
+                                        sessionManager.removePanel(session.id)
+                                        tabs.removeTab(tabInfo)
+                                    }
+                                    override fun update(e: AnActionEvent) {
+                                        e.presentation.isEnabled = true
+                                        e.presentation.isVisible = true
+                                    }
+                                }), "opencode-tab-close")
                                 tabs.addTab(tabInfo)
                                 tabs.select(tabInfo, true)
                                 sessionManager.setActiveSession(session.id)
@@ -98,19 +148,37 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
         }
         toolbar.add(newSessionButton)
 
-        toolbar.add(JButton(MyBundle["opencode.session.stop"]).apply {
+        toolbar.add(JButton(MyBundle["opencode.session.closeAll"]).apply {
             addActionListener {
-                val selectedInfo = tabs.selectedInfo ?: return@addActionListener
-                val panel = findPanelForTab(sessionManager, selectedInfo) ?: return@addActionListener
-                val session = panel.getCurrentSession()
-                if (session != null) {
-                    sessionManager.removePanel(session.id)
+                sessionManager.getSessions().entries.toList().forEach { (id, _) ->
+                    sessionManager.removePanel(id)
                 }
-                tabs.removeTab(selectedInfo)
+                tabs.removeAllTabs()
             }
         })
 
         toolbar.add(Box.createHorizontalGlue())
+
+        toolbar.add(JButton(MyBundle["opencode.switchFont"]).apply {
+            addActionListener {
+                val popup = JPopupMenu()
+                popup.add(JMenuItem(MyBundle["opencode.switchFont.embedded"]).apply {
+                    addActionListener {
+                        OpenCodeTerminalSettings.setFontPreference(true)
+                        val font = OpenCodeTerminalSettings.computeFont()
+                        sessionManager.getSessions().values.forEach { it.applyFont(font) }
+                    }
+                })
+                popup.add(JMenuItem(MyBundle["opencode.switchFont.default"]).apply {
+                    addActionListener {
+                        OpenCodeTerminalSettings.setFontPreference(false)
+                        val font = OpenCodeTerminalSettings.computeFont()
+                        sessionManager.getSessions().values.forEach { it.applyFont(font) }
+                    }
+                })
+                popup.show(this, 0, this.height)
+            }
+        })
 
         toolbar.add(JButton(MyBundle["opencode.checkUpdate"]).apply {
             addActionListener {
