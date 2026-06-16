@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-06-16
+
+### Added
+
+- **切换字体按钮** — 工具栏新增 Switch Font 按钮，支持在内嵌字体 (MapleMono NF CN) 和系统默认字体之间切换，选择即时生效并持久化，注意，默认字体可能导致中文问题，MapleMono NF CN可以使用中文，但可能有字符错位
+
+### Changed
+
+- 修改关闭按钮
+- Stop 按钮修改为 Close All 按钮
+- 将 JBTabsImpl 修改为公开接口
+
+
+## [0.1.7] - 2026-06-13
+
 ### Added
 
 - **CliProvider 架构重构** — 引入 `CliProvider` 接口策略模式，支持按 TUI 类型自定义文件引用格式
@@ -95,7 +110,8 @@
 - 修复 SGR 鼠标 release 事件未匹配 press 导致的悬停误触发
 - 修复 PtyTtyConnector read() 丢失数据的问题
 
-[Unreleased]: https://github.com/hunterxxn/OpenCodugin/compare/0.1.7...HEAD
+[Unreleased]: https://github.com/hunterxxn/OpenCodugin/compare/0.1.8...HEAD
+[0.1.8]: https://github.com/hunterxxn/OpenCodugin/compare/0.1.7...0.1.8
 [0.1.7]: https://github.com/hunterxxn/OpenCodugin/compare/0.1.6...0.1.7
 [0.1.6]: https://github.com/hunterxxn/OpenCodugin/compare/0.1.5...0.1.6
 [0.1.5]: https://github.com/hunterxxn/OpenCodugin/compare/0.1.4...0.1.5
