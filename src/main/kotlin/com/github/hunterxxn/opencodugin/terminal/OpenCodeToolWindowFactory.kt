@@ -8,7 +8,8 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.TabsListener
-import com.intellij.ui.tabs.impl.JBTabsImpl
+import com.intellij.ui.tabs.JBTabs
+import com.intellij.ui.tabs.JBTabsFactory
 import com.github.hunterxxn.opencodugin.MyBundle
 import com.github.hunterxxn.opencodugin.update.CheckUpdateAction
 import javax.swing.Box
@@ -27,7 +28,7 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val sessionManager = project.service<OpenCodeSessionManager>()
-        val tabs = JBTabsImpl(project)
+        val tabs = JBTabsFactory.createTabs(project)
 
         val mainPanel = JPanel(BorderLayout())
         val placeholder = JPanel()
@@ -62,7 +63,7 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
     private fun createToolbar(
         project: Project,
         sessionManager: OpenCodeSessionManager,
-        tabs: JBTabsImpl,
+        tabs: JBTabs,
         mainPanel: JPanel,
         placeholder: JPanel
     ): Pair<JToolBar, JButton> {
