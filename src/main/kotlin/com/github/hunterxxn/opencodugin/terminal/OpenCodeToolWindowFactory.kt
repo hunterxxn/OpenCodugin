@@ -26,7 +26,9 @@ import java.awt.RenderingHints
 import javax.swing.Box
 import javax.swing.Icon
 import javax.swing.JButton
+import javax.swing.JMenuItem
 import javax.swing.JPanel
+import javax.swing.JPopupMenu
 import javax.swing.JToolBar
 import javax.swing.SwingUtilities
 import java.awt.BorderLayout
@@ -147,6 +149,27 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
         toolbar.add(newSessionButton)
 
         toolbar.add(Box.createHorizontalGlue())
+
+        toolbar.add(JButton(MyBundle["opencode.switchFont"]).apply {
+            addActionListener {
+                val popup = JPopupMenu()
+                popup.add(JMenuItem(MyBundle["opencode.switchFont.embedded"]).apply {
+                    addActionListener {
+                        OpenCodeTerminalSettings.setFontPreference(true)
+                        val font = OpenCodeTerminalSettings.computeFont()
+                        sessionManager.getSessions().values.forEach { it.applyFont(font) }
+                    }
+                })
+                popup.add(JMenuItem(MyBundle["opencode.switchFont.default"]).apply {
+                    addActionListener {
+                        OpenCodeTerminalSettings.setFontPreference(false)
+                        val font = OpenCodeTerminalSettings.computeFont()
+                        sessionManager.getSessions().values.forEach { it.applyFont(font) }
+                    }
+                })
+                popup.show(this, 0, this.height)
+            }
+        })
 
         toolbar.add(JButton(MyBundle["opencode.checkUpdate"]).apply {
             addActionListener {

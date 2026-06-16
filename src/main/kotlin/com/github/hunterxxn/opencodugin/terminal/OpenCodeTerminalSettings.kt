@@ -1,6 +1,7 @@
 package com.github.hunterxxn.opencodugin.terminal
 
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.ide.util.PropertiesComponent
 import com.jediterm.terminal.TerminalColor
 import com.jediterm.terminal.ui.TerminalActionPresentation
 import com.jediterm.terminal.ui.settings.DefaultSettingsProvider
@@ -11,6 +12,26 @@ import java.awt.event.KeyEvent
 import javax.swing.KeyStroke
 
 class OpenCodeTerminalSettings : DefaultSettingsProvider() {
+
+    companion object {
+        private const val FONT_PREFERENCE_KEY = "opencode.terminal.fontPreference"
+        const val EMBEDDED = "embedded"
+        const val DEFAULT = "default"
+
+        fun isEmbeddedFontEnabled(): Boolean {
+            val value = PropertiesComponent.getInstance().getValue(FONT_PREFERENCE_KEY, EMBEDDED)
+            return value == EMBEDDED
+        }
+
+        fun setFontPreference(useEmbedded: Boolean) {
+            PropertiesComponent.getInstance().setValue(FONT_PREFERENCE_KEY, if (useEmbedded) EMBEDDED else DEFAULT)
+        }
+
+        fun computeFont(): Font {
+            val settings = OpenCodeTerminalSettings()
+            return settings.getTerminalFont()
+        }
+    }
 
     override fun enableMouseReporting(): Boolean = true
 
@@ -46,8 +67,10 @@ class OpenCodeTerminalSettings : DefaultSettingsProvider() {
     override fun getTerminalFont(): Font {
         val size = getTerminalFontSize().toInt()
 
-        val embedded = loadEmbeddedFont(size)
-        if (embedded != null) return embedded
+        if (isEmbeddedFontEnabled()) {
+            val embedded = loadEmbeddedFont(size)
+            if (embedded != null) return embedded
+        }
 
         val allFonts = GraphicsEnvironment.getLocalGraphicsEnvironment().availableFontFamilyNames
         val candidates = listOf(

@@ -13,4 +13,25 @@ class OpenCodeTerminalSettingsTest : BasePlatformTestCase() {
         val settings = OpenCodeTerminalSettings()
         assertTrue("Should force actions on mouse reporting for text selection", settings.forceActionOnMouseReporting())
     }
+
+    fun testDefaultFontPreferenceIsEmbedded() {
+        assertTrue("Default font preference should be embedded", OpenCodeTerminalSettings.isEmbeddedFontEnabled())
+    }
+
+    fun testSetFontPreferenceToDefault() {
+        OpenCodeTerminalSettings.setFontPreference(false)
+        assertFalse("Font preference should be default", OpenCodeTerminalSettings.isEmbeddedFontEnabled())
+        OpenCodeTerminalSettings.setFontPreference(true)
+    }
+
+    fun testSetFontPreferenceToEmbedded() {
+        OpenCodeTerminalSettings.setFontPreference(false)
+        OpenCodeTerminalSettings.setFontPreference(true)
+        assertTrue("Font preference should be embedded", OpenCodeTerminalSettings.isEmbeddedFontEnabled())
+    }
+
+    fun testComputeFontReturnsNonNull() {
+        val font = OpenCodeTerminalSettings.computeFont()
+        assertNotNull("computeFont should return a non-null font", font)
+    }
 }

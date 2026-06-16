@@ -17,6 +17,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseWheelEvent
 import java.io.IOException
 import java.io.InputStreamReader
+import java.awt.Font
 import javax.swing.JPanel
 import javax.swing.JScrollBar
 import javax.swing.JScrollPane
@@ -117,6 +118,11 @@ class OpenCodeTerminalPanel(
 
 
     fun getCurrentSession(): OpenCodeSession? = session
+
+    fun applyFont(font: Font) {
+        terminalWidget.terminalPanel.setFont(font)
+        terminalWidget.terminalPanel.repaint()
+    }
 
     fun dispose() {
         stopSession()
