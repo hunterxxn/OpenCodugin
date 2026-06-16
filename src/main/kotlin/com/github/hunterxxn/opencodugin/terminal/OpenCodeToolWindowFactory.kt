@@ -148,6 +148,15 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
         }
         toolbar.add(newSessionButton)
 
+        toolbar.add(JButton(MyBundle["opencode.session.closeAll"]).apply {
+            addActionListener {
+                sessionManager.getSessions().entries.toList().forEach { (id, _) ->
+                    sessionManager.removePanel(id)
+                }
+                tabs.removeAllTabs()
+            }
+        })
+
         toolbar.add(Box.createHorizontalGlue())
 
         toolbar.add(JButton(MyBundle["opencode.switchFont"]).apply {
