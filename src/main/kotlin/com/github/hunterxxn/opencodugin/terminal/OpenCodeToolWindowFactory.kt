@@ -146,18 +146,6 @@ class OpenCodeToolWindowFactory : ToolWindowFactory {
         }
         toolbar.add(newSessionButton)
 
-        toolbar.add(JButton(MyBundle["opencode.session.stop"]).apply {
-            addActionListener {
-                val selectedInfo = tabs.selectedInfo ?: return@addActionListener
-                val panel = findPanelForTab(sessionManager, selectedInfo) ?: return@addActionListener
-                val session = panel.getCurrentSession()
-                if (session != null) {
-                    sessionManager.removePanel(session.id)
-                }
-                tabs.removeTab(selectedInfo)
-            }
-        })
-
         toolbar.add(Box.createHorizontalGlue())
 
         toolbar.add(JButton(MyBundle["opencode.checkUpdate"]).apply {
